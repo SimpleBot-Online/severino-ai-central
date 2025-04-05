@@ -18,11 +18,21 @@ import { ChatMessage } from '../types';
 
 const ChatCEO = () => {
   const { messages, addMessage, sendWebhookMessage } = useChatStore();
-  const { settings } = useSettingsStore();
+  const { settings, updateSettings } = useSettingsStore();
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Set webhook URL if not already set
+  useEffect(() => {
+    if (!settings.webhookUrl) {
+      updateSettings({
+        ...settings,
+        webhookUrl: 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat'
+      });
+    }
+  }, [settings, updateSettings]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {

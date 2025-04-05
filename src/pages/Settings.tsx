@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { useSettingsStore } from '../store/dataStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,9 +13,13 @@ import {
   Globe, 
   User, 
   Eye, 
-  EyeOff 
+  EyeOff,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useTheme } from '@/hooks/use-theme';
+import { Switch } from '@/components/ui/switch';
 import {
   Tabs,
   TabsContent,
@@ -25,9 +29,10 @@ import {
 
 const Settings = () => {
   const { settings, updateSettings } = useSettingsStore();
+  const { theme, setTheme } = useTheme();
   const [formState, setFormState] = React.useState({
     openaiApiKey: settings.openaiApiKey || '',
-    webhookUrl: settings.webhookUrl || '',
+    webhookUrl: settings.webhookUrl || 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
     evolutionApiKey: settings.evolutionApiKey || '',
     theme: settings.theme || 'dark',
     language: settings.language || 'pt',
@@ -36,10 +41,27 @@ const Settings = () => {
   const [showEvolutionKey, setShowEvolutionKey] = React.useState(false);
   const { toast } = useToast();
 
+  // Sync theme state with settings
+  useEffect(() => {
+    setFormState(prev => ({
+      ...prev,
+      theme: theme
+    }));
+  }, [theme]);
+
   const handleChange = (field: string, value: string) => {
     setFormState({
       ...formState,
       [field]: value,
+    });
+  };
+
+  const handleToggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    setFormState({
+      ...formState,
+      theme: newTheme,
     });
   };
 
@@ -155,7 +177,7 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">URL do Webhook (n8n)</label>
+                    <label className="text-sm font-medium">URL do Webhook (ChatCEO)</label>
                     <Input
                       placeholder="https://seu-webhook-url.com"
                       value={formState.webhookUrl}
@@ -215,35 +237,23 @@ const Settings = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <User size={18} className="mr-2 text-severino-pink" />
-                    Preferências de Tema
+                    Modo de Exibição
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="theme-dark"
-                        name="theme"
-                        value="dark"
-                        checked={formState.theme === 'dark'}
-                        onChange={() => handleChange('theme', 'dark')}
-                        className="h-4 w-4 accent-severino-pink"
-                      />
-                      <label htmlFor="theme-dark">Escuro</label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {theme === 'dark' ? (
+                        <Moon size={20} className="text-severino-pink" />
+                      ) : (
+                        <Sun size={20} className="text-severino-pink" />
+                      )}
+                      <span>{theme === 'dark' ? 'Modo Escuro' : 'Modo Claro'}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="theme-light"
-                        name="theme"
-                        value="light"
-                        checked={formState.theme === 'light'}
-                        onChange={() => handleChange('theme', 'light')}
-                        className="h-4 w-4 accent-severino-pink"
-                      />
-                      <label htmlFor="theme-light">Claro</label>
-                    </div>
+                    <Switch
+                      checked={theme === 'light'}
+                      onCheckedChange={handleToggleTheme}
+                    />
                   </div>
                 </CardContent>
               </Card>

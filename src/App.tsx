@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./hooks/use-theme";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -19,16 +19,31 @@ import ChipHeating from "./pages/ChipHeating";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { useAuthStore } from "./store/authStore";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 // Private Route component for protected routes
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore();
-  return isAuthenticated ? <>{children}</> : <Login />;
+  const { isAuthenticated, loading } = useAuthStore();
+  
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin h-8 w-8 border-4 border-severino-pink rounded-full border-t-transparent"></div>
+    </div>;
+  }
+  
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
 const App = () => {
+  const { refreshSession } = useAuthStore();
+  
+  // Check for existing session on app load
+  useEffect(() => {
+    refreshSession();
+  }, [refreshSession]);
+  
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

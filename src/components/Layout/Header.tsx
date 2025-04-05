@@ -1,28 +1,26 @@
+
 import React, { useState } from 'react';
-import { Menu, Bell, User, Settings, LogOut } from 'lucide-react';
+import { Menu, Bell, User, Settings, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/hooks/use-theme";
+
 interface HeaderProps {
   toggleSidebar: () => void;
 }
-const Header: React.FC<HeaderProps> = ({
-  toggleSidebar
-}) => {
-  const {
-    user,
-    logout
-  } = useAuthStore();
-  const {
-    theme,
-    setTheme
-  } = useTheme();
+
+const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
+  const { user, logout } = useAuthStore();
+  const { theme, setTheme } = useTheme();
+
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
-  return <header className="bg-severino-gray border-b border-severino-lightgray py-4 px-6 flex items-center justify-between">
+
+  return (
+    <header className="bg-card border-b border-border py-4 px-6 flex items-center justify-between">
       <div className="flex items-center">
-        <button onClick={toggleSidebar} className="text-gray-300 hover:text-white mr-4 focus:outline-none md:hidden" aria-label="Toggle Sidebar">
+        <button onClick={toggleSidebar} className="text-foreground hover:text-primary mr-4 focus:outline-none md:hidden" aria-label="Toggle Sidebar">
           <Menu size={24} />
         </button>
         <div className="flex items-center gap-2">
@@ -32,7 +30,15 @@ const Header: React.FC<HeaderProps> = ({
       </div>
       
       <div className="flex items-center space-x-4">
-        <button className="text-gray-300 hover:text-white focus:outline-none relative">
+        <button 
+          onClick={toggleTheme} 
+          className="text-foreground hover:text-primary focus:outline-none"
+          aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+        
+        <button className="text-foreground hover:text-primary focus:outline-none relative">
           <Bell size={20} />
           <span className="absolute top-0 right-0 w-2 h-2 bg-severino-pink rounded-full"></span>
         </button>
@@ -46,23 +52,25 @@ const Header: React.FC<HeaderProps> = ({
               <span className="text-sm hidden md:block">{user?.username || 'Usuário'}</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-severino-gray border-severino-lightgray text-white">
-            <DropdownMenuItem className="cursor-pointer hover:bg-severino-lightgray focus:bg-severino-lightgray">
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem className="cursor-pointer">
               <User className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer hover:bg-severino-lightgray focus:bg-severino-lightgray" onClick={toggleTheme}>
+            <DropdownMenuItem className="cursor-pointer" onClick={toggleTheme}>
               <Settings className="mr-2 h-4 w-4" />
               <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-severino-lightgray" />
-            <DropdownMenuItem className="cursor-pointer text-severino-pink hover:bg-severino-lightgray focus:bg-severino-lightgray" onClick={logout}>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer text-severino-pink" onClick={logout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </header>;
+    </header>
+  );
 };
+
 export default Header;

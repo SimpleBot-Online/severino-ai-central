@@ -12,7 +12,8 @@ import {
   Cpu, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bot
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -33,25 +34,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
     { name: 'Ideias', path: '/ideas', icon: <Lightbulb size={20} /> },
     { name: 'Chat CEO', path: '/chat', icon: <MessageSquare size={20} /> },
     { name: 'Prompt Maker', path: '/prompts', icon: <Terminal size={20} /> },
+    { name: 'Assistentes', path: '/assistants', icon: <Bot size={20} /> },
     { name: 'Aquecimento de Chips', path: '/chips', icon: <Cpu size={20} /> },
     { name: 'Configurações', path: '/settings', icon: <Settings size={20} /> },
   ];
 
   return (
     <aside 
-      className={`bg-severino-dark border-r border-severino-lightgray transition-all duration-300 
+      className={`bg-sidebar border-r border-sidebar-border transition-all duration-300 
                 ${collapsed ? 'w-20' : 'w-64'} h-full z-10 fixed`}
     >
-      <div className="flex items-center justify-between p-4 border-b border-severino-lightgray">
+      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         {!collapsed && (
           <div className="flex items-center">
-            <span className="text-severino-pink font-bold text-xl">Severino IA</span>
+            <img src="/logo.png" alt="Severino Logo" className="h-8 w-8 mr-2" />
+            <span className="text-primary font-bold text-xl">Severino IA</span>
           </div>
         )}
-        {collapsed && <span className="text-severino-pink font-bold mx-auto">S</span>}
+        {collapsed && <img src="/logo.png" alt="S" className="h-8 w-8 mx-auto" />}
         
         <button 
-          className="text-severino-pink hover:bg-severino-gray p-1 rounded-full focus:outline-none"
+          className="text-primary hover:bg-sidebar-accent p-1 rounded-full focus:outline-none"
           onClick={toggleSidebar}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -68,8 +71,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
                 className={({ isActive }) =>
                   `flex items-center p-3 rounded-md transition-colors ${
                     isActive
-                      ? 'bg-severino-pink text-white'
-                      : 'text-gray-300 hover:bg-severino-gray hover:text-white'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   }`
                 }
                 title={collapsed ? item.name : ""}
@@ -82,10 +85,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-severino-lightgray">
+      <div className="p-4 border-t border-sidebar-border">
         <button
           onClick={logout}
-          className="flex items-center w-full p-2 rounded-md hover:bg-severino-gray text-gray-300 hover:text-white transition-colors"
+          className="flex items-center w-full p-2 rounded-md hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors"
           title={collapsed ? "Logout" : ""}
         >
           <span className="mr-3">

@@ -22,7 +22,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-severino-dark text-white">
+    <div className="flex h-screen bg-background text-foreground">
       <Sidebar collapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
       
       <div className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-0 md:ml-64'}`}>

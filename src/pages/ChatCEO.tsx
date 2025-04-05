@@ -13,6 +13,9 @@ const ChatCEO = () => {
 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; message: ChatMessage | null } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -33,6 +36,14 @@ const ChatCEO = () => {
     }
   }, [input]);
 
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu) setContextMenu(null);
+    };
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [contextMenu]);
+
   const sendWebhookMessage = async (text: string) => {
     const userMessage: ChatMessage = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
@@ -41,6 +52,7 @@ const ChatCEO = () => {
       timestamp: new Date(),
     };
     addMessage(userMessage);
+    setIsTyping(true);
 
     try {
       const response = await fetch(webhookUrl, {
@@ -54,16 +66,15 @@ const ChatCEO = () => {
         throw new Error(`Erro ${response.status}: ${errorText}`);
       }
 
-      const data: { output?: string } = await response.json();
+      const data = await response.json();
+      const output = typeof data === 'string' ? data : data?.output || data?.message || JSON.stringify(data);
 
-      if (!data || typeof data.output !== 'string') {
-        throw new Error('Resposta inválida do servidor.');
-      }
+      await new Promise((res) => setTimeout(res, 400));
 
       const botMessage: ChatMessage = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}-bot`,
         sender: 'bot',
-        content: data.output || 'Sem resposta do bot.',
+        content: output || 'Sem resposta do bot.',
         timestamp: new Date(),
       };
 
@@ -75,22 +86,24 @@ const ChatCEO = () => {
         description: error.message || 'Erro desconhecido.',
         variant: 'destructive',
       });
-
       addMessage({
         id: `${Date.now()}-error`,
         sender: 'bot',
         content: 'Desculpe, houve um erro ao processar sua mensagem.',
         timestamp: new Date(),
       });
+    } finally {
+      setIsTyping(false);
     }
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
+    const currentInput = input;
+    setInput('');
     setLoading(true);
     try {
-      await sendWebhookMessage(input);
-      setInput('');
+      await sendWebhookMessage(currentInput);
     } finally {
       setLoading(false);
     }
@@ -103,10 +116,27 @@ const ChatCEO = () => {
     }
   };
 
+  const handleContextMenu = (event: React.MouseEvent, message: ChatMessage) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, message });
+  };
+
+  const handleCopy = () => {
+    if (contextMenu?.message) {
+      navigator.clipboard.writeText(contextMenu.message.content);
+      toast({ title: 'Mensagem copiada para a área de transferência.' });
+    }
+    setContextMenu(null);
+  };
+
+  const handleDelete = () => {
+    toast({ title: 'Função de deletar ainda não implementada.' });
+    setContextMenu(null);
+  };
+
   return (
     <div className="flex h-screen bg-black text-white font-mono">
-      {/* Sidebar */}
-      <aside className="w-64 bg-[#0d0d0d] border-r border-gray-800 p-4 hidden md:flex flex-col">
+      <aside className="w-64 bg-[#0d0d0d] border-r border-gray-800 p-4 flex flex-col">
         <h2 className="text-[#ff007f] text-lg font-bold mb-4">Menu</h2>
         <ul className="space-y-2 text-sm">
           <li className="hover:text-[#00ffff] cursor-pointer">Início</li>
@@ -116,13 +146,11 @@ const ChatCEO = () => {
       </aside>
 
       <div className="flex-1 flex flex-col">
-        {/* Header */}
         <header className="bg-[#0d0d0d] border-b border-gray-800 p-4 text-[#ff007f] font-bold text-lg">
           Chat CEO
         </header>
 
-        {/* Chat area */}
-        <main className="flex-1 overflow-y-auto p-4">
+        <main className="flex-1 overflow-y-auto p-4 relative">
           <div className="flex-1 overflow-y-auto space-y-4 px-2 mb-4 animate-fadeIn">
             {messages.length === 0 ? (
               <div className="text-center text-gray-400 mt-20 text-lg">
@@ -133,28 +161,59 @@ const ChatCEO = () => {
                 <div
                   key={msg.id}
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  onContextMenu={(e) => handleContextMenu(e, msg)}
                 >
-                  <div
-                    className={`max-w-[70%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
-                      msg.sender === 'user'
-                        ? 'bg-[#ff007f] text-white rounded-tr-none'
-                        : 'bg-[#00ffff] text-black rounded-tl-none'
-                    }`}
-                  >
-                    <div className="flex justify-between text-xs opacity-70 mb-1">
-                      <span>{msg.sender === 'user' ? 'Você' : 'CEO'}</span>
-                      <span>{formatTime(msg.timestamp)}</span>
+                  {msg.content.trim() === '' ? (
+                    <div className="border border-red-500 p-2 text-xs">Mensagem vazia</div>
+                  ) : (
+                    <div
+                      className={`max-w-[70%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
+                        msg.sender === 'user'
+                          ? 'bg-[#ff007f] text-white rounded-tr-none'
+                          : 'bg-[#00ffff] text-black rounded-tl-none'
+                      }`}
+                    >
+                      <div className="flex justify-between text-xs opacity-70 mb-1">
+                        <span>{msg.sender === 'user' ? 'Você' : 'CEO'}</span>
+                        <span>{formatTime(msg.timestamp)}</span>
+                      </div>
+                      {msg.content}
                     </div>
-                    {msg.content}
-                  </div>
+                  )}
                 </div>
               ))
             )}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-[#00ffff] text-black text-sm rounded-lg px-4 py-2 animate-pulse">
+                  CEO está digitando...
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
+
+          {contextMenu && contextMenu.message && (
+            <div
+              className="absolute bg-white text-black shadow-xl rounded-md text-sm z-50"
+              style={{ top: contextMenu.y, left: contextMenu.x }}
+            >
+              <button
+                className="block w-full px-4 py-2 hover:bg-gray-200"
+                onClick={handleCopy}
+              >
+                Copiar
+              </button>
+              <button
+                className="block w-full px-4 py-2 hover:bg-gray-200"
+                onClick={handleDelete}
+              >
+                Excluir
+              </button>
+            </div>
+          )}
         </main>
 
-        {/* Input area */}
         <footer className="flex gap-2 border-t border-gray-700 p-4">
           <textarea
             id="chat-input"

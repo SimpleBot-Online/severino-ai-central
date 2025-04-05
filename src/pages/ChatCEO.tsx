@@ -92,28 +92,50 @@ function TypewriterText({ text }: { text: string }) {
 }
 
 export default function Chatbot() {
-  const [messages, setMessages] = useState([]);
+  const {
+    tabs,
+    activeTabId,
+    setActiveTabId,
+    addTab,
+    removeTab,
+    addMessage,
+    setTabInitialized,
+  } = useChatStore();
+  
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [initialized, setInitialized] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const messageSound = useRef(new Audio("/message.mp3"));
 
-  const scrollToBottom = () => {
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  const messages = useMemo(() => activeTab?.messages || [], [activeTab?.messages]);
+
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
-  useEffect(() => {
-    if (!initialized) {
-      setInitialized(true);
-      iniciarIntro();
+  const initializingRef = useRef<{ [key: string]: boolean }>({});
+
+  const appendMessage = useCallback((content: string, isUser: boolean) => {
+    const newMessage = { text: content, isUser, id: Date.now() };
+    addMessage(activeTabId, newMessage);
+    if (!isUser) {
+      messageSound.current.play().catch(() => {
+        // Ignore audio play errors
+      });
     }
-  }, [initialized]);
+  }, [activeTabId, addMessage]);
 
-  const iniciarIntro = async () => {
+  const iniciarIntro = useCallback(async () => {
+    if (initializingRef.current[activeTabId]) return;
+    initializingRef.current[activeTabId] = true;
+
     const delays = [500, 2000, 3000];
     const msgs = [
       "Estabelecendo conexão segura...",
@@ -121,15 +143,44 @@ export default function Chatbot() {
       "E aí! Aqui é o Severino, o CEO. Me diz aí o que tu precisa!",
     ];
 
-    for (let i = 0; i < msgs.length; i++) {
-      await new Promise((resolve) => setTimeout(resolve, delays[i]));
-      appendMessage(msgs[i], false);
+    try {
+      for (let i = 0; i < msgs.length; i++) {
+        await new Promise((resolve) => setTimeout(resolve, delays[i]));
+        appendMessage(msgs[i], false);
+      }
+      setTabInitialized(activeTabId);
+    } finally {
+      initializingRef.current[activeTabId] = false;
+    }
+  }, [appendMessage, activeTabId, setTabInitialized]);
+
+  useEffect(() => {
+    if (activeTab && !activeTab.initialized && !initializingRef.current[activeTabId]) {
+      iniciarIntro();
+    }
+  }, [activeTab, activeTabId, iniciarIntro]);
+
+  const copyMessage = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      toast({
+        title: "Mensagem copiada!",
+        duration: 2000,
+      });
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (err) {
+      toast({
+        title: "Erro ao copiar mensagem",
+        variant: "destructive",
+      });
     }
   };
 
-  const appendMessage = (content, isUser) => {
-    setMessages((prev) => [...prev, { text: content, isUser }]);
-  };
+  const sendMessageRef = useRef<boolean>(false);
+  const sendingRef = useRef(false);
+  const lastTimestampRef = useRef(0);
+  const messageQueueRef = useRef<string[]>([]);
 
   const sendMessage = useCallback(async (message: string) => {
     const now = Date.now();
@@ -240,49 +291,155 @@ export default function Chatbot() {
         handleSend();
       }
     }
-  };
+  }, [handleSend, isTyping]);
 
   return (
-    <div className={`relative flex h-screen items-center justify-center bg-black font-[Orbitron] text-pink-500`}>
-      <div className="absolute inset-0 z-0 animate-pulse bg-gradient-to-br from-[#1a1a1a] via-[#0f0f0f] to-[#1a1a1a] bg-[length:100%_100%] opacity-20" />
-      <div className="relative z-10 flex h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-xl border-2 border-pink-500 bg-[#0d0d0d] shadow-[0_0_25px_#ff007f]">
-        <div className="border-b-2 border-pink-500 bg-black px-4 py-3 text-center text-lg font-bold text-pink-500">
-          Severino, CEO
+    <AppLayout>
+      <div className="relative flex flex-col flex-1 h-[calc(100vh-5rem)] p-4 overflow-hidden bg-severino-dark">
+        {/* Animated cyberpunk background */}
+        <div className="fixed inset-0 z-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-severino-dark to-cyan-900/20" />
+          <div className="cyberpunk-grid" />
+          <div className="cyberpunk-glow absolute top-1/4 left-1/4 w-96 h-96 bg-severino-pink/20 blur-3xl rounded-full transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+          <div className="cyberpunk-glow absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/20 blur-3xl rounded-full transform translate-x-1/2 translate-y-1/2 animate-pulse" />
         </div>
-        <div className="flex-1 overflow-y-auto p-5 space-y-3 scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-[#1a1a1a]">
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`message max-w-[80%] break-words rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
-                msg.isUser
-                  ? "ml-auto bg-pink-500 text-white"
-                  : "bg-cyan-300 text-black"
-              }`}
-            >
-              {msg.text}
+
+        <div className="relative z-10 flex flex-col h-full w-full max-w-4xl mx-auto overflow-hidden rounded-lg border border-severino-pink bg-severino-dark/80 backdrop-blur-sm shadow-lg shadow-severino-pink/20">
+          <div className="border-b border-severino-pink bg-severino-dark/90 px-4 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Terminal className="h-5 w-5 text-severino-pink" />
+                <h2 className="text-lg font-mono font-semibold text-severino-pink">
+                  Severino Nexus v2.0
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-severino-pink hover:bg-severino-pink/20"
+                  onClick={() => addTab()}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-severino-pink hover:bg-severino-pink/20">
+                      <span className="mr-2">Terminal {activeTabId}</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-severino-dark border-severino-pink">
+                    {tabs.map(tab => (
+                      <DropdownMenuItem
+                        key={tab.id}
+                        className={cn(
+                          "flex items-center justify-between",
+                          tab.id === activeTabId && "bg-severino-pink/20"
+                        )}
+                        onClick={() => setActiveTabId(tab.id)}
+                      >
+                        <span>{tab.name}</span>
+                        {tabs.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-4 w-4 ml-2 text-severino-pink hover:bg-severino-pink/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (tabs.length > 1) {
+                                removeTab(tab.id);
+                              }
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          ))}
-          {isTyping && (
-            <div className="animate-pulse text-cyan-300 text-sm">Severino digitando...</div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-        <div className="flex gap-2 border-t-2 border-pink-500 p-5">
-          <textarea
-            rows={1}
-            className="flex-1 resize-none rounded-md border-2 border-cyan-300 bg-black p-3 text-pink-500 placeholder:text-pink-400 focus:outline-none"
-            placeholder="Manda aí tua mensagem..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            style={{ height: "auto", overflow: "hidden" }}
-          />
-          <button
-            onClick={handleSend}
-            className="rounded-md bg-pink-500 px-4 py-2 font-semibold text-white transition-all hover:bg-cyan-300 hover:text-black"
-          >
-            Enviar
-          </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-sm scrollbar-thin scrollbar-track-severino-dark scrollbar-thumb-severino-pink/50">
+            {messages.map((msg, i) => (
+              <div
+                key={msg.id}
+                className={`group flex animate-fadeIn ${msg.isUser ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`relative max-w-[80%] rounded px-3 py-2 ${
+                    msg.isUser
+                      ? "bg-severino-pink/20 text-gray-100 border border-severino-pink/50"
+                      : "bg-cyan-500/10 text-gray-100 border border-cyan-500/50"
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span className={cn(
+                      "select-none",
+                      msg.isUser ? "text-severino-pink" : "text-cyan-500"
+                    )}>
+                      {msg.isUser ? '>' : '$'}
+                    </span>
+                    {msg.isUser ? (
+                      <span>{msg.text}</span>
+                    ) : (
+                      <TypewriterText text={msg.text} />
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute -right-10 top-0 opacity-0 transition-opacity group-hover:opacity-100 text-severino-pink hover:text-severino-pink/80"
+                    onClick={() => copyMessage(msg.text, i)}
+                  >
+                    {copiedIndex === i ? (
+                      <CheckCheck className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ))}
+            
+            {isTyping && (
+              <div className="flex items-center gap-2 text-cyan-500 animate-fadeIn">
+                <span>$</span>
+                <div className="flex space-x-1">
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "0ms" }} />
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "150ms" }} />
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="border-t border-severino-pink bg-severino-dark/90 p-4">
+            <div className="flex gap-2 items-center font-mono">
+              <span className="text-severino-pink select-none">{'>'}</span>
+              <textarea
+                rows={1}
+                className="flex-1 bg-transparent border-none text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 resize-none"
+                placeholder="Digite seu comando..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                disabled={isTyping}
+                style={{ minHeight: '24px', maxHeight: '120px' }}
+              />
+              <Button 
+                onClick={handleSend}
+                className="shrink-0 bg-gradient-to-r from-severino-pink to-cyan-500 text-white hover:opacity-90"
+                disabled={isTyping || !newMessage.trim()}
+              >
+                Executar
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </AppLayout>

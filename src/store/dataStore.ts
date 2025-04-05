@@ -1,8 +1,9 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { Note, Task, UsefulLink, Idea, ChatMessage, Prompt, ChipInstance, Settings } from '../types';
+import {
+  Note, Task, UsefulLink, Idea, ChatMessage, Prompt, ChipInstance, Settings
+} from '../types';
 
 // Notes Store
 interface NotesState {
@@ -28,10 +29,8 @@ export const useNotesStore = create<NotesState>()(
       },
       updateNote: (id, title, content) => {
         set((state) => ({
-          notes: state.notes.map((note) => 
-            note.id === id 
-              ? { ...note, title, content, updatedAt: new Date() }
-              : note
+          notes: state.notes.map((note) =>
+            note.id === id ? { ...note, title, content, updatedAt: new Date() } : note
           ),
         }));
       },
@@ -41,9 +40,7 @@ export const useNotesStore = create<NotesState>()(
         }));
       },
     }),
-    {
-      name: 'severino-notes-storage',
-    }
+    { name: 'severino-notes-storage' }
   )
 );
 
@@ -73,14 +70,14 @@ export const useTasksStore = create<TasksState>()(
       },
       updateTask: (id, updates) => {
         set((state) => ({
-          tasks: state.tasks.map((task) => 
+          tasks: state.tasks.map((task) =>
             task.id === id ? { ...task, ...updates } : task
           ),
         }));
       },
       updateTaskStatus: (id, status) => {
         set((state) => ({
-          tasks: state.tasks.map((task) => 
+          tasks: state.tasks.map((task) =>
             task.id === id ? { ...task, status } : task
           ),
         }));
@@ -91,9 +88,7 @@ export const useTasksStore = create<TasksState>()(
         }));
       },
     }),
-    {
-      name: 'severino-tasks-storage',
-    }
+    { name: 'severino-tasks-storage' }
   )
 );
 
@@ -122,7 +117,7 @@ export const useLinksStore = create<LinksState>()(
       },
       updateLink: (id, updates) => {
         set((state) => ({
-          links: state.links.map((link) => 
+          links: state.links.map((link) =>
             link.id === id ? { ...link, ...updates } : link
           ),
         }));
@@ -133,9 +128,7 @@ export const useLinksStore = create<LinksState>()(
         }));
       },
     }),
-    {
-      name: 'severino-links-storage',
-    }
+    { name: 'severino-links-storage' }
   )
 );
 
@@ -163,7 +156,7 @@ export const useIdeasStore = create<IdeasState>()(
       },
       updateIdea: (id, updates) => {
         set((state) => ({
-          ideas: state.ideas.map((idea) => 
+          ideas: state.ideas.map((idea) =>
             idea.id === id ? { ...idea, ...updates } : idea
           ),
         }));
@@ -174,13 +167,11 @@ export const useIdeasStore = create<IdeasState>()(
         }));
       },
     }),
-    {
-      name: 'severino-ideas-storage',
-    }
+    { name: 'severino-ideas-storage' }
   )
 );
 
-// Chat Messages Store
+// Chat Store
 interface ChatState {
   messages: ChatMessage[];
   addMessage: (sender: string, content: string) => void;
@@ -204,28 +195,25 @@ export const useChatStore = create<ChatState>((set) => ({
   },
   sendWebhookMessage: async (content, webhookUrl) => {
     try {
-      // For demo purposes, we'll just add the message locally
-      // In a real app, you would send to the actual webhook
-      const newMessage: ChatMessage = {
+      const userMessage: ChatMessage = {
         id: uuidv4(),
         sender: 'user',
         content,
         timestamp: new Date(),
       };
-      set((state) => ({ messages: [...state.messages, newMessage] }));
-      
-      // Simulate response
+      set((state) => ({ messages: [...state.messages, userMessage] }));
+
       setTimeout(() => {
-        const responseMessage: ChatMessage = {
+        const botResponse: ChatMessage = {
           id: uuidv4(),
           sender: 'CEO',
           content: `Response to: ${content}`,
           timestamp: new Date(),
         };
-        set((state) => ({ messages: [...state.messages, responseMessage] }));
+        set((state) => ({ messages: [...state.messages, botResponse] }));
       }, 1000);
     } catch (error) {
-      console.error('Failed to send webhook message:', error);
+      console.error('Webhook send failed:', error);
     }
   },
 }));
@@ -253,7 +241,7 @@ export const usePromptsStore = create<PromptsState>((set) => ({
   },
   updatePrompt: (id, updates) => {
     set((state) => ({
-      prompts: state.prompts.map((prompt) => 
+      prompts: state.prompts.map((prompt) =>
         prompt.id === id ? { ...prompt, ...updates } : prompt
       ),
     }));
@@ -265,8 +253,6 @@ export const usePromptsStore = create<PromptsState>((set) => ({
   },
   generateWithOpenAI: async (prompt, apiKey) => {
     try {
-      // For demo purposes, we'll return a mock response
-      // In a real app, you would call the OpenAI API
       return `Generated response for prompt: ${prompt}`;
     } catch (error) {
       console.error('Failed to generate with OpenAI:', error);
@@ -300,7 +286,7 @@ export const useChipInstancesStore = create<ChipInstancesState>()(
       },
       updateInstance: (id, updates) => {
         set((state) => ({
-          instances: state.instances.map((instance) => 
+          instances: state.instances.map((instance) =>
             instance.id === id ? { ...instance, ...updates } : instance
           ),
         }));
@@ -312,35 +298,29 @@ export const useChipInstancesStore = create<ChipInstancesState>()(
       },
       heatChip: async (id, apiKey) => {
         try {
-          // Update status to heating
           set((state) => ({
-            instances: state.instances.map((instance) => 
+            instances: state.instances.map((instance) =>
               instance.id === id ? { ...instance, status: 'heating' } : instance
             ),
           }));
-          
-          // Simulate API call
           setTimeout(() => {
             set((state) => ({
-              instances: state.instances.map((instance) => 
+              instances: state.instances.map((instance) =>
                 instance.id === id ? { ...instance, status: 'active' } : instance
               ),
             }));
           }, 2000);
         } catch (error) {
           console.error('Failed to heat chip:', error);
-          // Revert to inactive on error
           set((state) => ({
-            instances: state.instances.map((instance) => 
+            instances: state.instances.map((instance) =>
               instance.id === id ? { ...instance, status: 'inactive' } : instance
             ),
           }));
         }
       },
     }),
-    {
-      name: 'severino-chip-instances-storage',
-    }
+    { name: 'severino-chip-instances-storage' }
   )
 );
 
@@ -368,8 +348,6 @@ export const useSettingsStore = create<SettingsState>()(
         }));
       },
     }),
-    {
-      name: 'severino-settings-storage',
-    }
+    { name: 'severino-settings-storage' }
   )
 );

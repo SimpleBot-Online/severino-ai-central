@@ -38,9 +38,7 @@ export default function Chatbot() {
 
       try {
         responseData = JSON.parse(text);
-      } catch (e) {
-        // Not JSON, keep as text
-      }
+      } catch (e) {}
 
       if (!response.ok) {
         throw new Error(
@@ -89,15 +87,13 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-black font-[Montserrat]">
-      <div className="flex h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-xl border-2 border-pink-500 bg-[#1a1a1a] shadow-[0_0_20px_#ff007f]">
-        <div
-          className="flex-1 overflow-y-auto p-5 space-y-3 scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-[#1a1a1a]"
-        >
+    <div className="flex h-screen items-center justify-center bg-gradient-to-br from-black via-[#0f0f0f] to-black font-[Montserrat] px-4">
+      <div className="flex h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-pink-500 bg-[#121212] shadow-[0_0_30px_#ff007f66]">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-transparent">
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`message max-w-[80%] break-words rounded-lg px-3 py-2 text-sm ${
+              className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-sm shadow-md transition-all ${
                 msg.isUser
                   ? "ml-auto bg-pink-500 text-white"
                   : "bg-cyan-300 text-black"
@@ -108,10 +104,10 @@ export default function Chatbot() {
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div className="flex gap-2 border-t-2 border-pink-500 p-5">
+        <div className="flex items-end gap-2 border-t border-pink-500 bg-[#121212] p-4">
           <textarea
             rows={1}
-            className="flex-1 resize-none rounded-md border-2 border-cyan-300 bg-[#1a1a1a] p-3 text-pink-500 placeholder:text-pink-400 focus:outline-none"
+            className="flex-1 resize-none rounded-lg border border-cyan-300 bg-black px-4 py-3 text-sm text-pink-400 placeholder:text-pink-400 focus:border-pink-500 focus:outline-none"
             placeholder="Digite sua mensagem..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
@@ -120,7 +116,7 @@ export default function Chatbot() {
           />
           <button
             onClick={handleSend}
-            className="rounded-md bg-pink-500 px-4 py-2 font-semibold text-white transition-all hover:bg-cyan-300 hover:text-black"
+            className="rounded-lg bg-pink-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-cyan-300 hover:text-black"
           >
             Enviar
           </button>

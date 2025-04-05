@@ -1,40 +1,32 @@
-
 import React, { useState } from 'react';
 import { Menu, Bell, User, Settings, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { 
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/hooks/use-theme";
-
 interface HeaderProps {
   toggleSidebar: () => void;
 }
-
-const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
-  const { user, logout } = useAuthStore();
-  const { theme, setTheme } = useTheme();
-
+const Header: React.FC<HeaderProps> = ({
+  toggleSidebar
+}) => {
+  const {
+    user,
+    logout
+  } = useAuthStore();
+  const {
+    theme,
+    setTheme
+  } = useTheme();
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
-
-  return (
-    <header className="bg-severino-gray border-b border-severino-lightgray py-4 px-6 flex items-center justify-between">
+  return <header className="bg-severino-gray border-b border-severino-lightgray py-4 px-6 flex items-center justify-between">
       <div className="flex items-center">
-        <button
-          onClick={toggleSidebar}
-          className="text-gray-300 hover:text-white mr-4 focus:outline-none md:hidden"
-          aria-label="Toggle Sidebar"
-        >
+        <button onClick={toggleSidebar} className="text-gray-300 hover:text-white mr-4 focus:outline-none md:hidden" aria-label="Toggle Sidebar">
           <Menu size={24} />
         </button>
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Severino Logo" className="h-8 w-8" />
+          <img alt="Severino Logo" src="/lovable-uploads/b78248f0-9127-4245-8146-41531235c56f.png" className="h-8 w-8 object-cover" />
           <h1 className="text-xl font-semibold md:block hidden">Severino IA Central</h1>
         </div>
       </div>
@@ -59,26 +51,18 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               <User className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="cursor-pointer hover:bg-severino-lightgray focus:bg-severino-lightgray"
-              onClick={toggleTheme}
-            >
+            <DropdownMenuItem className="cursor-pointer hover:bg-severino-lightgray focus:bg-severino-lightgray" onClick={toggleTheme}>
               <Settings className="mr-2 h-4 w-4" />
               <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-severino-lightgray" />
-            <DropdownMenuItem 
-              className="cursor-pointer text-severino-pink hover:bg-severino-lightgray focus:bg-severino-lightgray"
-              onClick={logout}
-            >
+            <DropdownMenuItem className="cursor-pointer text-severino-pink hover:bg-severino-lightgray focus:bg-severino-lightgray" onClick={logout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Header;

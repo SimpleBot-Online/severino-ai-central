@@ -11,16 +11,18 @@ import {
   Terminal, 
   Cpu, 
   Settings,
-  Menu,
-  X
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface SidebarProps {
   collapsed: boolean;
+  toggleSidebar: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) => {
   const { logout } = useAuthStore();
 
   const menuItems = [
@@ -38,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   return (
     <aside 
       className={`bg-severino-dark border-r border-severino-lightgray transition-all duration-300 
-                ${collapsed ? 'w-20' : 'w-64'} flex flex-col fixed h-full z-10`}
+                ${collapsed ? 'w-20' : 'w-64'} h-full z-10 fixed`}
     >
       <div className="flex items-center justify-between p-4 border-b border-severino-lightgray">
         {!collapsed && (
@@ -47,6 +49,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           </div>
         )}
         {collapsed && <span className="text-severino-pink font-bold mx-auto">S</span>}
+        
+        <button 
+          className="text-severino-pink hover:bg-severino-gray p-1 rounded-full focus:outline-none"
+          onClick={toggleSidebar}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4">
@@ -62,6 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                       : 'text-gray-300 hover:bg-severino-gray hover:text-white'
                   }`
                 }
+                title={collapsed ? item.name : ""}
               >
                 <span className="mr-3">{item.icon}</span>
                 {!collapsed && <span>{item.name}</span>}
@@ -75,6 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         <button
           onClick={logout}
           className="flex items-center w-full p-2 rounded-md hover:bg-severino-gray text-gray-300 hover:text-white transition-colors"
+          title={collapsed ? "Logout" : ""}
         >
           <span className="mr-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

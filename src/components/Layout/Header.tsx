@@ -15,7 +15,8 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
       <div className="flex items-center">
         <button
           onClick={toggleSidebar}
-          className="text-gray-300 hover:text-white mr-4 focus:outline-none"
+          className="text-gray-300 hover:text-white mr-4 focus:outline-none md:hidden"
+          aria-label="Toggle Sidebar"
         >
           <Menu size={24} />
         </button>

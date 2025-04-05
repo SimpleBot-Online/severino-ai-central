@@ -23,9 +23,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-severino-dark text-white">
-      <Sidebar collapsed={sidebarCollapsed} />
+      <Sidebar collapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
       
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-0 md:ml-64'}`}>
         <Header toggleSidebar={toggleSidebar} />
         
         <main className="flex-1 overflow-auto p-4 md:p-6">

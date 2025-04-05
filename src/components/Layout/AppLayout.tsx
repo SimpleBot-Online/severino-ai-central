@@ -20,18 +20,27 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     setSidebarCollapsed((prev) => !prev);
   };
 
-  const sidebarWidth = sidebarCollapsed ? 'w-20' : 'w-64';
-
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <div className={`fixed z-50 h-full transition-all duration-300 ${sidebarWidth}`}>
+    <div className="flex min-h-screen bg-background">
+      {/* Overlay for mobile when sidebar is open */}
+      <div 
+        className={`fixed inset-0 z-30 bg-background/80 backdrop-blur-sm transition-all duration-300 
+          lg:hidden ${!sidebarCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={toggleSidebar}
+      />
+
+      <div className={`fixed z-40 h-full transition-transform duration-300 ease-in-out 
+        ${sidebarCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-20' : 'translate-x-0 w-64'}`}>
         <Sidebar collapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
       </div>
 
-      <div className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'pl-20' : 'pl-64'}`}>
+      <div className={`flex flex-col flex-1 min-h-screen w-full transition-all duration-300
+        ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         <Header toggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-auto p-4 md:p-6">
-          {children}
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+          <div className="container mx-auto max-w-7xl">
+            {children}
+          </div>
         </main>
       </div>
     </div>

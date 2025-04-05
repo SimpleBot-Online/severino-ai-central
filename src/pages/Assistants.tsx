@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import AppLayout from '@/components/Layout/AppLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,24 +8,42 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { useSettingsStore } from '@/store/dataStore';
-import { Bot, Send, RefreshCcw } from 'lucide-react';
+import { Bot, Send, RefreshCcw, Save } from 'lucide-react';
 
 const Assistants = () => {
-  const { settings } = useSettingsStore();
+  const { settings, updateSettings } = useSettingsStore();
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [assistantConfig, setAssistantConfig] = useState({
-    model: 'gpt-4o',
+    model: 'gpt-4o-mini',
     instructions: 'Você é um assistente útil e amigável.',
     temperature: 0.7,
+    maxTokens: 2048,
   });
+
   const { register, handleSubmit, reset } = useForm<{ message: string }>();
 
   const models = [
-    { id: 'gpt-4o', name: 'GPT-4o' },
     { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+    { id: 'gpt-4o', name: 'GPT-4o' },
     { id: 'gpt-4.5-preview', name: 'GPT-4.5 Preview' },
   ];
+
+  // Carregar configurações salvas
+  useEffect(() => {
+    const savedConfig = localStorage.getItem('assistant-config');
+    if (savedConfig) {
+      setAssistantConfig(JSON.parse(savedConfig));
+    }
+  }, []);
+
+  const handleSaveConfig = () => {
+    localStorage.setItem('assistant-config', JSON.stringify(assistantConfig));
+    toast({
+      title: "Configurações salvas",
+      description: "As configurações do assistente foram salvas com sucesso.",
+    });
+  };
 
   const onSubmit = async (data: { message: string }) => {
     if (!data.message.trim()) return;
@@ -64,6 +81,7 @@ const Assistants = () => {
             userMessage
           ],
           temperature: assistantConfig.temperature,
+          max_tokens: assistantConfig.maxTokens,
         })
       });
 
@@ -101,9 +119,19 @@ const Assistants = () => {
         <div className="lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bot size={20} />
-                Configuração do Assistente
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bot size={20} />
+                  Configuração do Assistente
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSaveConfig}
+                  title="Salvar configurações"
+                >
+                  <Save size={16} />
+                </Button>
               </CardTitle>
               <CardDescription>
                 Configure as opções do assistente para testar diferentes comportamentos
@@ -156,6 +184,25 @@ const Assistants = () => {
                 <div className="flex justify-between text-xs mt-1">
                   <span>Mais preciso</span>
                   <span>Mais criativo</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Máximo de Tokens: {assistantConfig.maxTokens}
+                </label>
+                <input
+                  type="range"
+                  min="256"
+                  max="4096"
+                  step="256"
+                  value={assistantConfig.maxTokens}
+                  onChange={(e) => setAssistantConfig({...assistantConfig, maxTokens: parseInt(e.target.value)})}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs mt-1">
+                  <span>Respostas curtas</span>
+                  <span>Respostas longas</span>
                 </div>
               </div>
             </CardContent>

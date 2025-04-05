@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import Assistants from "./pages/Assistants";
 import ChipHeating from "./pages/ChipHeating";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import SavedPrompts from "./pages/SavedPrompts";
 import { useAuthStore } from "./store/authStore";
 import { useEffect } from "react";
 
@@ -62,6 +62,7 @@ const App = () => {
               <Route path="/ideas" element={<PrivateRoute><Ideas /></PrivateRoute>} />
               <Route path="/chat" element={<PrivateRoute><ChatCEO /></PrivateRoute>} />
               <Route path="/prompts" element={<PrivateRoute><PromptMaker /></PrivateRoute>} />
+              <Route path="/saved-prompts" element={<PrivateRoute><SavedPrompts /></PrivateRoute>} />
               <Route path="/assistants" element={<PrivateRoute><Assistants /></PrivateRoute>} />
               <Route path="/chips" element={<PrivateRoute><ChipHeating /></PrivateRoute>} />
               <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />

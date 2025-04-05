@@ -227,39 +227,49 @@ interface PromptsState {
   generateWithOpenAI: (prompt: string, apiKey: string) => Promise<string>;
 }
 
-export const usePromptsStore = create<PromptsState>((set) => ({
-  prompts: [],
-  addPrompt: (title, content, category) => {
-    const newPrompt: Prompt = {
-      id: uuidv4(),
-      title,
-      content,
-      category,
-      createdAt: new Date(),
-    };
-    set((state) => ({ prompts: [newPrompt, ...state.prompts] }));
-  },
-  updatePrompt: (id, updates) => {
-    set((state) => ({
-      prompts: state.prompts.map((prompt) =>
-        prompt.id === id ? { ...prompt, ...updates } : prompt
-      ),
-    }));
-  },
-  deletePrompt: (id) => {
-    set((state) => ({
-      prompts: state.prompts.filter((prompt) => prompt.id !== id),
-    }));
-  },
-  generateWithOpenAI: async (prompt, apiKey) => {
-    try {
-      return `Generated response for prompt: ${prompt}`;
-    } catch (error) {
-      console.error('Failed to generate with OpenAI:', error);
-      return 'Failed to generate response. Please check your API key.';
+export const usePromptsStore = create<PromptsState>()(
+  persist(
+    (set) => ({
+      prompts: [],
+      addPrompt: (title, content, category) => {
+        const newPrompt: Prompt = {
+          id: uuidv4(),
+          title,
+          content,
+          category,
+          createdAt: new Date(),
+        };
+        set((state) => ({ 
+          prompts: [newPrompt, ...state.prompts] 
+        }));
+      },
+      updatePrompt: (id, updates) => {
+        set((state) => ({
+          prompts: state.prompts.map((prompt) =>
+            prompt.id === id ? { ...prompt, ...updates } : prompt
+          ),
+        }));
+      },
+      deletePrompt: (id) => {
+        set((state) => ({
+          prompts: state.prompts.filter((prompt) => prompt.id !== id),
+        }));
+      },
+      generateWithOpenAI: async (prompt, apiKey) => {
+        try {
+          return `Generated response for prompt: ${prompt}`;
+        } catch (error) {
+          console.error('Failed to generate with OpenAI:', error);
+          return 'Failed to generate response. Please check your API key.';
+        }
+      },
+    }),
+    {
+      name: 'severino-prompts-storage',
+      version: 1,
     }
-  },
-}));
+  )
+);
 
 // Chip Instances Store
 interface ChipInstancesState {
@@ -326,8 +336,11 @@ export const useChipInstancesStore = create<ChipInstancesState>()(
 
 // Settings Store
 interface SettingsState {
-  settings: Settings;
-  updateSettings: (updates: Partial<Settings>) => void;
+  settings: Settings & {
+    apiKey?: string;
+    assistantId?: string;
+  };
+  updateSettings: (updates: Partial<Settings> & { apiKey?: string; assistantId?: string }) => void;
 }
 
 const defaultSettings: Settings = {
@@ -341,11 +354,21 @@ const defaultSettings: Settings = {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      settings: defaultSettings,
+      settings: {
+        ...defaultSettings,
+        apiKey: localStorage.getItem('openai_api_key') || '',
+        assistantId: localStorage.getItem('openai_assistant_id') || '',
+      },
       updateSettings: (updates) => {
         set((state) => ({
           settings: { ...state.settings, ...updates },
         }));
+        if (updates.apiKey) {
+          localStorage.setItem('openai_api_key', updates.apiKey);
+        }
+        if (updates.assistantId) {
+          localStorage.setItem('openai_assistant_id', updates.assistantId);
+        }
       },
     }),
     { name: 'severino-settings-storage' }

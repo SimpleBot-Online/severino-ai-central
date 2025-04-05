@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               <div className="bg-severino-pink rounded-full w-8 h-8 flex items-center justify-center">
                 <User size={16} />
               </div>
-              <span className="text-sm hidden md:block">{user?.username || 'Usuário'}</span>
+              <span className="text-sm hidden md:block">{user?.email ? user.email.split('@')[0] : 'Usuário'}</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">

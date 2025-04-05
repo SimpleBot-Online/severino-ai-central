@@ -63,3 +63,13 @@ export interface Settings {
   theme: 'dark' | 'light';
   language: 'pt' | 'en';
 }
+
+// Supabase-specific types for notes
+export interface SupabaseNote {
+  id: string;
+  title: string;
+  content: string | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}

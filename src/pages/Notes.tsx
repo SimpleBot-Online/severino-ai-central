@@ -26,17 +26,10 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-}
+import { SupabaseNote } from '@/types';
 
 const Notes = () => {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<SupabaseNote[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -105,7 +98,7 @@ const Notes = () => {
 
   const filteredNotes = notes.filter(note => 
     note.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    note.content.toLowerCase().includes(searchTerm.toLowerCase())
+    (note.content && note.content.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleAddNote = async () => {
@@ -306,7 +299,7 @@ const Notes = () => {
                           setCurrentNote({
                             id: note.id,
                             title: note.title,
-                            content: note.content,
+                            content: note.content || '',
                           });
                           setIsEditDialogOpen(true);
                         }}
@@ -319,7 +312,7 @@ const Notes = () => {
                           setCurrentNote({
                             id: note.id,
                             title: note.title,
-                            content: note.content,
+                            content: note.content || '',
                           });
                           setIsDeleteDialogOpen(true);
                         }}

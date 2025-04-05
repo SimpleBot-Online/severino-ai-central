@@ -113,7 +113,12 @@ const ChatCEO = () => {
       </div>
 
       <div className="flex gap-2 border-t border-gray-700 pt-4">
+        <label htmlFor="chat-input" className="sr-only">
+          Mensagem
+        </label>
         <textarea
+          id="chat-input"
+          name="chat-input"
           ref={textareaRef}
           className="flex-1 resize-none bg-gray-800 text-white rounded-lg px-4 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-600"
           placeholder="Digite sua mensagem..."

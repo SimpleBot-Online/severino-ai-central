@@ -48,9 +48,7 @@ export default function ChatbotPage() {
 
       try {
         responseData = JSON.parse(text);
-      } catch (e) {
-        // Not JSON, keep as text
-      }
+      } catch (e) {}
 
       if (!response.ok) {
         throw new Error(
@@ -100,22 +98,19 @@ export default function ChatbotPage() {
 
   return (
     <AppLayout>
-      <div className="flex h-screen items-center justify-center bg-black font-[Montserrat]">
-        <div className="flex h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-xl border-2 border-pink-500 bg-[#1a1a1a] shadow-[0_0_20px_#ff007f]">
-          {/* MENU SUPERIOR */}
-          <div className="flex items-center justify-between border-b-2 border-pink-500 bg-[#1a1a1a] px-5 py-3 text-pink-500">
-            <h2 className="text-sm font-semibold">Chatbot</h2>
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-[#0f0f0f] via-[#1f1f1f] to-black font-[Orbitron]">
+        <div className="flex h-[85vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-cyan-400/30 bg-[#0e0e0e] shadow-[0_0_40px_#0ff]">
+          {/* HEADER */}
+          <div className="flex items-center justify-between border-b border-cyan-400/30 bg-[#101010] px-5 py-4 text-cyan-300">
+            <h2 className="text-sm font-semibold tracking-widest">CYBERCHAT</h2>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-pink-500 hover:text-cyan-300">
+                <Button variant="ghost" size="sm" className="text-cyan-300 hover:text-pink-400">
                   {selectedBot.toUpperCase()}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-40">
-                <DropdownMenuRadioGroup
-                  value={selectedBot}
-                  onValueChange={setSelectedBot}
-                >
+              <DropdownMenuContent className="bg-[#111] text-cyan-300 border border-cyan-400/20">
+                <DropdownMenuRadioGroup value={selectedBot} onValueChange={setSelectedBot}>
                   <DropdownMenuRadioItem value="bot1">Bot 1</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="bot2">Bot 2</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="bot3">Bot 3</DropdownMenuRadioItem>
@@ -124,15 +119,15 @@ export default function ChatbotPage() {
             </DropdownMenu>
           </div>
 
-          {/* MENSAGENS */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-3 scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-[#1a1a1a]">
+          {/* MESSAGES */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`message max-w-[80%] break-words rounded-lg px-3 py-2 text-sm ${
+                className={`max-w-[80%] px-4 py-2 text-sm tracking-wide rounded-lg ${
                   msg.isUser
-                    ? "ml-auto bg-pink-500 text-white"
-                    : "bg-cyan-300 text-black"
+                    ? "ml-auto bg-gradient-to-br from-pink-500 to-pink-700 text-white"
+                    : "bg-gradient-to-br from-cyan-500 to-cyan-700 text-black"
                 }`}
               >
                 {msg.text}
@@ -141,20 +136,19 @@ export default function ChatbotPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* CAMPO DE TEXTO */}
-          <div className="flex gap-2 border-t-2 border-pink-500 p-5">
+          {/* INPUT */}
+          <div className="flex gap-2 border-t border-cyan-400/30 p-4">
             <textarea
               rows={1}
-              className="flex-1 resize-none rounded-md border-2 border-cyan-300 bg-[#1a1a1a] p-3 text-pink-500 placeholder:text-pink-400 focus:outline-none"
+              className="flex-1 resize-none rounded-md border border-cyan-300/40 bg-[#0e0e0e] p-3 text-cyan-200 placeholder:text-cyan-400 focus:outline-none"
               placeholder="Digite sua mensagem..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyPress}
-              style={{ height: "auto", overflow: "hidden" }}
             />
             <button
               onClick={handleSend}
-              className="rounded-md bg-pink-500 px-4 py-2 font-semibold text-white transition-all hover:bg-cyan-300 hover:text-black"
+              className="rounded-md bg-pink-500 px-4 py-2 font-bold text-white transition-all hover:bg-cyan-400 hover:text-black"
             >
               Enviar
             </button>

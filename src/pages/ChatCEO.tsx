@@ -1,256 +1,131 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Send } from 'lucide-react';
-import { useChatStore } from '../store/dataStore';
-import { useToast } from '@/components/ui/use-toast';
-import { ChatMessage } from '../types';
+import { useEffect, useRef, useState } from "react";
 
-const formatTime = (date: Date) =>
-  new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+export default function Chatbot() {
+  const [messages, setMessages] = useState([
+    { text: "Olá! Como posso ajudar você hoje?", isUser: false },
+  ]);
+  const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef(null);
 
-const ChatCEO = () => {
-  const { messages, addMessage } = useChatStore();
-  const { toast } = useToast();
-
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; message: ChatMessage | null } | null>(null);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const webhookUrl = 'https://gen.simplebot.online/webhook/b8f10f59-0108-43f1-afce-e782eda6ebe0';
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    });
+    scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.minHeight = '72px';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [input]);
+  const appendMessage = (content, isUser) => {
+    setMessages((prev) => [...prev, { text: content, isUser }]);
+  };
 
-  useEffect(() => {
-    const handleClickOutside = () => {
-      if (contextMenu) setContextMenu(null);
-    };
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
-  }, [contextMenu]);
-
-  const sendWebhookMessage = async (text: string) => {
-    const userMessage: ChatMessage = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      sender: 'user',
-      content: text,
-      timestamp: new Date(),
-    };
-    addMessage(userMessage);
-    setIsTyping(true);
-
+  const sendMessage = async (message) => {
     try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
-      });
+      const payload = JSON.stringify({ mensagem: message });
+      const response = await fetch(
+        "https://gen.simplebot.online/webhook/b8f10f59-0108-43f1-afce-e782eda6ebe0",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: payload,
+        }
+      );
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro ${response.status}: ${errorText}`);
+      const text = await response.text();
+      let responseData = text;
+
+      try {
+        responseData = JSON.parse(text);
+      } catch (e) {
+        // Not JSON, keep as text
       }
 
-      const data = await response.json();
-      const output = typeof data === 'string' ? data : data?.output || data?.message || JSON.stringify(data);
+      if (!response.ok) {
+        throw new Error(
+          `Erro ${response.status}: ${
+            typeof responseData === "string"
+              ? responseData
+              : JSON.stringify(responseData)
+          }`
+        );
+      }
 
-      await new Promise((res) => setTimeout(res, 400));
+      const botResponse =
+        responseData.output ||
+        responseData.mensagem ||
+        responseData.message ||
+        responseData.resposta ||
+        responseData.response;
 
-      const botMessage: ChatMessage = {
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}-bot`,
-        sender: 'bot',
-        content: output || 'Sem resposta do bot.',
-        timestamp: new Date(),
-      };
-
-      addMessage(botMessage);
-    } catch (error: any) {
-      console.error('Erro no webhook:', error);
-      toast({
-        title: 'Erro ao enviar mensagem',
-        description: error.message || 'Erro desconhecido.',
-        variant: 'destructive',
-      });
-      addMessage({
-        id: `${Date.now()}-error`,
-        sender: 'bot',
-        content: 'Desculpe, houve um erro ao processar sua mensagem.',
-        timestamp: new Date(),
-      });
-    } finally {
-      setIsTyping(false);
+      if (botResponse) {
+        appendMessage(botResponse, false);
+      } else {
+        appendMessage("Desculpe, não consegui processar sua mensagem.", false);
+      }
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+      appendMessage(
+        "Desculpe, ocorreu um erro ao processar sua mensagem.",
+        false
+      );
     }
   };
 
   const handleSend = async () => {
-    if (!input.trim()) return;
-    const currentInput = input;
-    setInput('');
-    setLoading(true);
-    try {
-      await sendWebhookMessage(currentInput);
-    } finally {
-      setLoading(false);
-    }
+    const trimmed = newMessage.trim();
+    if (!trimmed) return;
+    appendMessage(trimmed, true);
+    setNewMessage("");
+    await sendMessage(trimmed);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
-  const handleContextMenu = (event: React.MouseEvent, message: ChatMessage) => {
-    event.preventDefault();
-    setContextMenu({ x: event.clientX, y: event.clientY, message });
-  };
-
-  const handleCopy = () => {
-    if (contextMenu?.message) {
-      navigator.clipboard.writeText(contextMenu.message.content);
-      toast({ title: 'Mensagem copiada para a área de transferência.' });
-    }
-    setContextMenu(null);
-  };
-
-  const handleDelete = () => {
-    toast({ title: 'Função de deletar ainda não implementada.' });
-    setContextMenu(null);
-  };
-
   return (
-    <div className="flex h-screen bg-black text-white font-mono">
-      <aside className="w-64 bg-[#0d0d0d] border-r border-gray-800 p-4 flex flex-col">
-        <h2 className="text-[#ff007f] text-lg font-bold mb-4">Menu</h2>
-        <ul className="space-y-2 text-sm">
-          <li className="hover:text-[#00ffff] cursor-pointer">Início</li>
-          <li className="hover:text-[#00ffff] cursor-pointer">Conversas</li>
-          <li className="hover:text-[#00ffff] cursor-pointer">Configurações</li>
-        </ul>
-      </aside>
-
-      <div className="flex-1 flex flex-col">
-        <header className="bg-[#0d0d0d] border-b border-gray-800 p-4 text-[#ff007f] font-bold text-lg">
-          Chat CEO
-        </header>
-
-        <main className="flex-1 overflow-y-auto p-4 relative">
-          <div className="flex-1 overflow-y-auto space-y-4 px-2 mb-4 animate-fadeIn">
-            {messages.length === 0 ? (
-              <div className="text-center text-gray-400 mt-20 text-lg">
-                Olá! Como posso ajudar você hoje?
-              </div>
-            ) : (
-              messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  onContextMenu={(e) => handleContextMenu(e, msg)}
-                >
-                  {msg.content.trim() === '' ? (
-                    <div className="border border-red-500 p-2 text-xs">Mensagem vazia</div>
-                  ) : (
-                    <div
-                      className={`max-w-[70%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
-                        msg.sender === 'user'
-                          ? 'bg-[#ff007f] text-white rounded-tr-none'
-                          : 'bg-[#00ffff] text-black rounded-tl-none'
-                      }`}
-                    >
-                      <div className="flex justify-between text-xs opacity-70 mb-1">
-                        <span>{msg.sender === 'user' ? 'Você' : 'CEO'}</span>
-                        <span>{formatTime(msg.timestamp)}</span>
-                      </div>
-                      {msg.content}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="bg-[#00ffff] text-black text-sm rounded-lg px-4 py-2 animate-pulse">
-                  CEO está digitando...
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {contextMenu && contextMenu.message && (
+    <div className="flex h-screen items-center justify-center bg-black font-[Montserrat]">
+      <div className="flex h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-xl border-2 border-pink-500 bg-[#1a1a1a] shadow-[0_0_20px_#ff007f]">
+        <div
+          className="flex-1 overflow-y-auto p-5 space-y-3 scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-[#1a1a1a]"
+        >
+          {messages.map((msg, i) => (
             <div
-              className="absolute bg-white text-black shadow-xl rounded-md text-sm z-50"
-              style={{ top: contextMenu.y, left: contextMenu.x }}
+              key={i}
+              className={`message max-w-[80%] break-words rounded-lg px-3 py-2 text-sm ${
+                msg.isUser
+                  ? "ml-auto bg-pink-500 text-white"
+                  : "bg-cyan-300 text-black"
+              }`}
             >
-              <button
-                className="block w-full px-4 py-2 hover:bg-gray-200"
-                onClick={handleCopy}
-              >
-                Copiar
-              </button>
-              <button
-                className="block w-full px-4 py-2 hover:bg-gray-200"
-                onClick={handleDelete}
-              >
-                Excluir
-              </button>
+              {msg.text}
             </div>
-          )}
-        </main>
-
-        <footer className="flex gap-2 border-t border-gray-700 p-4">
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+        <div className="flex gap-2 border-t-2 border-pink-500 p-5">
           <textarea
-            id="chat-input"
-            name="chat-input"
-            ref={textareaRef}
-            className="flex-1 resize-none bg-gray-800 text-white rounded-lg px-4 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff007f]"
+            rows={1}
+            className="flex-1 resize-none rounded-md border-2 border-cyan-300 bg-[#1a1a1a] p-3 text-pink-500 placeholder:text-pink-400 focus:outline-none"
             placeholder="Digite sua mensagem..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            rows={3}
-            disabled={loading}
-            autoComplete="off"
-            aria-label="Digite sua mensagem"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={handleKeyPress}
+            style={{ height: "auto", overflow: "hidden" }}
           />
-
           <button
             onClick={handleSend}
-            disabled={loading || !input.trim()}
-            className="bg-[#ff007f] hover:bg-pink-700 text-white px-4 py-2 rounded-lg text-sm flex items-center disabled:opacity-50"
+            className="rounded-md bg-pink-500 px-4 py-2 font-semibold text-white transition-all hover:bg-cyan-300 hover:text-black"
           >
-            {loading ? (
-              <div className="flex items-center">
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                Enviando
-              </div>
-            ) : (
-              <>
-                <Send size={16} className="mr-1" />
-                Enviar
-              </>
-            )}
+            Enviar
           </button>
-        </footer>
+        </div>
       </div>
     </div>
   );
-};
-
-export default ChatCEO;
+}

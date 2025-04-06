@@ -16,14 +16,13 @@ interface AuthState {
   refreshSession: () => Promise<void>;
 }
 
-// Fix excessive type instantiation by using a more direct approach
-type AuthPersistState = {
+// Create a simple non-generic object type for persisted state
+type PersistState = {
   isAuthenticated: boolean;
   user: User | null;
   session: Session | null;
-}
+};
 
-// Create store with a simplified approach to avoid deep type instantiation
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -192,12 +191,15 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'severino-auth-storage',
-      // Using an explicit plain object return to avoid deep type inference
-      partialize: (state) => ({ 
-        isAuthenticated: state.isAuthenticated,
-        user: state.user,
-        session: state.session 
-      }) as AuthPersistState
+      // Fix the type instantiation depth error with a simpler approach
+      partialize: (state) => {
+        // Explicitly return a plain object without type assertions
+        return {
+          isAuthenticated: state.isAuthenticated,
+          user: state.user,
+          session: state.session
+        };
+      }
     }
   )
 );

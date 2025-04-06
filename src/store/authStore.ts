@@ -98,20 +98,9 @@ export const useAuthStore = create<AuthState>()(
               return { error: { message: 'Usuário não encontrado' } };
             }
             
-            // Find the email associated with the profile
-            const { data: userData, error: userError } = await supabase
-              .from('auth.users')
-              .select('email')
-              .eq('id', profileData.id)
-              .single();
-            
-            if (userError || !userData) {
-              return { error: { message: 'Erro ao buscar dados do usuário' } };
-            }
-            
             // Now sign in with email and password
             const { data, error } = await supabase.auth.signInWithPassword({
-              email: userData.email,
+              email: emailOrUsername, // Use email directly
               password,
             });
             

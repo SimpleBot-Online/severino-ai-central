@@ -17,7 +17,8 @@ import {
   EyeOff,
   Sun,
   Moon,
-  Check
+  Check,
+  Cpu
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTheme } from '@/hooks/use-theme';
@@ -41,6 +42,7 @@ const Settings = () => {
     openaiApiKey: settings.openaiApiKey || '',
     webhookUrl: settings.webhookUrl || 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
     evolutionApiKey: settings.evolutionApiKey || '',
+    webhookEvolutionUrl: settings.webhookEvolutionUrl || '',
     theme: settings.theme || 'dark',
     language: settings.language || 'pt',
     enableNotifications: settings.enableNotifications || false,
@@ -112,6 +114,7 @@ const Settings = () => {
       openaiApiKey: '',
       webhookUrl: 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
       evolutionApiKey: '',
+      webhookEvolutionUrl: '',
       theme: 'dark',
       language: 'pt',
       enableNotifications: false,
@@ -244,7 +247,7 @@ const Settings = () => {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Necessária para o aquecimento de chips.
+                      Necessária para o aquecimento de chips e integração com Evolution API.
                     </p>
                   </div>
                 </CardContent>
@@ -277,6 +280,70 @@ const Settings = () => {
                     <p className="text-xs text-muted-foreground">
                       URL do webhook para o Chat CEO. Configuração necessária para envio de mensagens.
                     </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="webhook_evolution_url">URL do Webhook (Evolution API)</Label>
+                    <Input
+                      id="webhook_evolution_url"
+                      placeholder="https://sua-url-evolution-api.com/webhook/instance"
+                      value={formState.webhookEvolutionUrl}
+                      onChange={(e) => handleChange('webhookEvolutionUrl', e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      URL do webhook para a Evolution API. Configuração necessária para integração.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Cpu size={18} className="mr-2 text-severino-pink" />
+                    Evolution API
+                  </CardTitle>
+                  <CardDescription>
+                    Configurações para integração com a Evolution API.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-severino-lightgray p-4 rounded-md">
+                      <h3 className="font-medium mb-2">Eventos de Webhook Disponíveis</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                          <span className="font-bold">QRCODE_UPDATED</span>: QR Code atualizado
+                        </div>
+                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                          <span className="font-bold">MESSAGES_UPSERT</span>: Mensagens inseridas/atualizadas
+                        </div>
+                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                          <span className="font-bold">MESSAGES_UPDATE</span>: Estado da mensagem alterado
+                        </div>
+                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                          <span className="font-bold">MESSAGES_DELETE</span>: Mensagem deletada
+                        </div>
+                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                          <span className="font-bold">SEND_MESSAGE</span>: Mensagem enviada
+                        </div>
+                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                          <span className="font-bold">CONNECTION_UPDATE</span>: Conexão atualizada
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Formato do Webhook por Eventos</Label>
+                      <div className="p-3 bg-severino-lightgray rounded-md font-mono text-xs overflow-x-auto">
+                        {formState.webhookEvolutionUrl ? 
+                          `${formState.webhookEvolutionUrl}/MESSAGES_UPDATE` : 
+                          'https://sua-url.com/webhook/MESSAGES_UPDATE'}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Adicione o nome do evento ao final da URL base do webhook para eventos específicos.
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -1,10 +1,6 @@
-
 import React from 'react';
 import AppLayout from '../components/Layout/AppLayout';
-import { useNotesStore } from '../store/dataStore';
-import { useTasksStore } from '../store/dataStore';
-import { useIdeasStore } from '../store/dataStore';
-import { useChipInstancesStore } from '../store/dataStore';
+import { useNotesStore, useTasksStore, useIdeasStore, useChipInstancesStore } from '../store/dataStore';
 import { 
   FileText, 
   CheckSquare, 
@@ -13,9 +9,14 @@ import {
   Calendar,
   Clock,
   ArrowUpRight,
+  Webhook,
+  Zap,
+  MessageSquare
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@/hooks/use-theme';
 
 const Dashboard = () => {
   const { notes } = useNotesStore();
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const { ideas } = useIdeasStore();
   const { instances } = useChipInstancesStore();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const pendingTasks = tasks.filter(task => task.status === 'pending');
   const inProgressTasks = tasks.filter(task => task.status === 'in-progress');
@@ -51,13 +53,76 @@ const Dashboard = () => {
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   ).slice(0, 3);
 
+  const cardBgClass = theme === 'dark' ? 'bg-severino-gray' : 'bg-white';
+  const cardBorderClass = theme === 'dark' ? 'border-severino-lightgray' : 'border-gray-200';
+
   return (
     <AppLayout>
       <div className="animate-fadeIn">
         <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
         
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-3">Ações Rápidas</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <Button 
+              onClick={() => navigate('/notes')}
+              variant="outline" 
+              className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
+            >
+              <FileText className="h-6 w-6 mb-2 text-severino-pink" />
+              <span className="text-xs">Notas</span>
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/tasks')}
+              variant="outline" 
+              className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
+            >
+              <CheckSquare className="h-6 w-6 mb-2 text-severino-pink" />
+              <span className="text-xs">Tarefas</span>
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/chat')}
+              variant="outline" 
+              className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
+            >
+              <MessageSquare className="h-6 w-6 mb-2 text-severino-pink" />
+              <span className="text-xs">Chat</span>
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/farm')}
+              variant="outline" 
+              className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
+            >
+              <Cpu className="h-6 w-6 mb-2 text-severino-pink" />
+              <span className="text-xs">FARM</span>
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/ideas')}
+              variant="outline" 
+              className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
+            >
+              <Lightbulb className="h-6 w-6 mb-2 text-severino-pink" />
+              <span className="text-xs">Ideias</span>
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/settings')}
+              variant="outline" 
+              className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
+            >
+              <Webhook className="h-6 w-6 mb-2 text-severino-pink" />
+              <span className="text-xs">Integração</span>
+            </Button>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-severino-gray border-severino-lightgray">
+          <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-400">Total de Anotações</CardTitle>
             </CardHeader>
@@ -71,7 +136,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-severino-gray border-severino-lightgray">
+          <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-400">Tarefas Pendentes</CardTitle>
             </CardHeader>
@@ -85,7 +150,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-severino-gray border-severino-lightgray">
+          <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-400">Ideias Registradas</CardTitle>
             </CardHeader>
@@ -99,7 +164,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-severino-gray border-severino-lightgray">
+          <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-400">Chips Ativos</CardTitle>
             </CardHeader>
@@ -116,7 +181,7 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Tasks Overview */}
-          <Card className="bg-severino-gray border-severino-lightgray lg:col-span-2">
+          <Card className={`${cardBgClass} ${cardBorderClass} lg:col-span-2`}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle>Visão Geral das Tarefas</CardTitle>
               <button 
@@ -201,7 +266,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Today's Tasks */}
-          <Card className="bg-severino-gray border-severino-lightgray">
+          <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2">
               <CardTitle>Tarefas para Hoje</CardTitle>
             </CardHeader>
@@ -233,9 +298,81 @@ const Dashboard = () => {
           </Card>
         </div>
 
+        <Card className={`${cardBgClass} ${cardBorderClass} mb-6`}>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center">
+              <Webhook className="mr-2 text-severino-pink" size={20} />
+              Integração Evolution API
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm">
+                Configure a integração com a Evolution API para automação de WhatsApp e comunicação via webhooks.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Card className="bg-severino-lightgray border-none">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-sm">Webhooks</h3>
+                      <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">Receba eventos do WhatsApp em tempo real</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full text-xs"
+                      onClick={() => navigate('/settings')}
+                    >
+                      Configurar
+                    </Button>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-severino-lightgray border-none">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-sm">Farm</h3>
+                      <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">Gerencie instâncias de WhatsApp</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full text-xs"
+                      onClick={() => navigate('/farm')}
+                    >
+                      Gerenciar
+                    </Button>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-severino-lightgray border-none">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-sm">API Key</h3>
+                      <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">Configure sua chave de API</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full text-xs"
+                      onClick={() => navigate('/settings')}
+                    >
+                      Configurar
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Latest Notes */}
-          <Card className="bg-severino-gray border-severino-lightgray">
+          <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle>Anotações Recentes</CardTitle>
               <button 
@@ -268,7 +405,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Latest Ideas */}
-          <Card className="bg-severino-gray border-severino-lightgray">
+          <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle>Ideias Recentes</CardTitle>
               <button 

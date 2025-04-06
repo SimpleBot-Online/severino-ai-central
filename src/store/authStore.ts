@@ -23,7 +23,7 @@ type AuthPersistState = {
   session: Session | null;
 }
 
-// Use more explicit typing to prevent deep type instantiation
+// Create the store with explicit types to avoid deep instantiation
 const authStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -192,15 +192,15 @@ const authStore = create<AuthState>()(
     }),
     {
       name: 'severino-auth-storage',
+      // Fix the type instantiation issue by explicitly typing the return value
       partialize: (state) => {
-        // Explicitly return the AuthPersistState type to avoid deep type instantiation
-        const partialState: AuthPersistState = { 
+        const result: AuthPersistState = {
           isAuthenticated: state.isAuthenticated,
           user: state.user,
           session: state.session
         };
-        return partialState;
-      },
+        return result;
+      }
     }
   )
 );

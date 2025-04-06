@@ -97,7 +97,7 @@ const App = () => {
               <Route path="/prompts" element={<PrivateRoute><PromptMaker /></PrivateRoute>} />
               <Route path="/saved-prompts" element={<PrivateRoute><SavedPrompts /></PrivateRoute>} />
               <Route path="/assistants" element={<PrivateRoute><Assistants /></PrivateRoute>} />
-              <Route path="/chips" element={<PrivateRoute><ChipHeating /></PrivateRoute>} />
+              <Route path="/farm" element={<PrivateRoute><ChipHeating /></PrivateRoute>} />
               <Route path="/melhor-robo" element={<PrivateRoute><MelhorRobo /></PrivateRoute>} />
               <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
               

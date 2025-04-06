@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import Header from './Header';
 import { useAuthStore } from '../../store/authStore';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -12,6 +12,7 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { isAuthenticated, loading } = useAuthStore();
+  const location = useLocation();
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
@@ -51,6 +52,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const toggleSidebar = () => {
     setSidebarCollapsed((prev) => !prev);
   };
+
+  // Always show sidebar collapsed on mobile for better experience
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setSidebarCollapsed(true);
+    }
+  }, [location.pathname]);
 
   return (
     <div className="flex min-h-screen bg-background font-mono relative">

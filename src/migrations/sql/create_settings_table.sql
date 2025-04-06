@@ -1,5 +1,6 @@
 
 
+
 -- Create settings table if it doesn't exist
 create or replace function create_settings_table()
 returns void as $$
@@ -10,6 +11,7 @@ begin
       openai_api_key text,
       webhook_url text,
       evolution_api_key text,
+      webhook_evolution_url text,
       theme text not null check (theme in ('dark', 'light')) default 'dark',
       language text not null check (language in ('pt', 'en')) default 'pt',
       enable_notifications boolean not null default false,
@@ -40,4 +42,5 @@ begin
   end if;
 end;
 $$ language plpgsql;
+
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { useChipInstancesStore } from '../store/dataStore';
@@ -56,7 +55,6 @@ const ChipHeating = () => {
       return;
     }
 
-    // Basic phone validation
     const phoneRegex = /^\+?[0-9]{10,15}$/;
     if (!phoneRegex.test(newInstance.phone)) {
       toast({
@@ -149,7 +147,7 @@ const ChipHeating = () => {
     <AppLayout>
       <div className="animate-fadeIn">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Aquecimento de Chips</h1>
+          <h1 className="text-2xl font-bold">FARM</h1>
           
           <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto mt-4 md:mt-0">
             <div className="relative">
@@ -256,7 +254,6 @@ const ChipHeating = () => {
         )}
       </div>
 
-      {/* Add Instance Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="bg-severino-gray border-severino-lightgray sm:max-w-md">
           <DialogHeader>
@@ -310,7 +307,6 @@ const ChipHeating = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Instance Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="bg-severino-gray border-severino-lightgray sm:max-w-md">
           <DialogHeader>

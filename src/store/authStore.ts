@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, PersistOptions } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -22,6 +22,18 @@ interface PersistedAuthState {
   user: User | null;
   session: Session | null;
 }
+
+// Define persist options with explicit typing
+type AuthPersistOptions = PersistOptions<AuthState, PersistedAuthState>;
+
+const authPersistOptions: AuthPersistOptions = {
+  name: 'severino-auth-storage',
+  partialize: (state) => ({
+    isAuthenticated: state.isAuthenticated,
+    user: state.user,
+    session: state.session
+  }),
+};
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -185,14 +197,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
     }),
-    {
-      name: 'severino-auth-storage',
-      partialize: (state): PersistedAuthState => ({
-        isAuthenticated: state.isAuthenticated,
-        user: state.user,
-        session: state.session
-      })
-    }
+    authPersistOptions
   )
 );
 

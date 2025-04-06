@@ -10,6 +10,7 @@ begin
       webhook_url text,
       evolution_api_key text,
       webhook_evolution_url text,
+      assistant_id text,
       theme text not null check (theme in ('dark', 'light')) default 'dark',
       language text not null check (language in ('pt', 'en')) default 'pt',
       enable_notifications boolean not null default false,

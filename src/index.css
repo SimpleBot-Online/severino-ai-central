@@ -1,86 +1,90 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 10%;
+    --background: 235 35% 5%;
+    --foreground: 180 100% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card: 235 35% 8%;
+    --card-foreground: 180 100% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover: 235 35% 8%;
+    --popover-foreground: 180 100% 95%;
 
-    --primary: 330 95% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 165 100% 50%;
+    --primary-foreground: 235 35% 8%;
 
-    --secondary: 240 4% 93%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 345 100% 50%;
+    --secondary-foreground: 235 35% 8%;
 
-    --muted: 240 4% 93%;
-    --muted-foreground: 240 5% 35%;
+    --muted: 235 20% 20%;
+    --muted-foreground: 180 30% 75%;
 
-    --accent: 330 95% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 275 100% 50%;
+    --accent-foreground: 180 100% 95%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 345 100% 50%;
+    --destructive-foreground: 180 100% 95%;
 
-    --border: 240 4% 88%;
-    --input: 240 4% 95%;
-    --ring: 240 4% 70%;
+    --border: 235 35% 15%;
+    --input: 235 35% 15%;
+    --ring: 165 80% 40%;
 
-    --radius: 0.5rem;
+    --radius: 0.125rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 330 95% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4% 93%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 240 4% 88%;
-    --sidebar-ring: 330 95% 60%;
+    --sidebar-background: 235 35% 8%;
+    --sidebar-foreground: 180 100% 95%;
+    --sidebar-primary: 165 100% 50%;
+    --sidebar-primary-foreground: 235 35% 8%;
+    --sidebar-accent: 235 35% 15%;
+    --sidebar-accent-foreground: 180 100% 95%;
+    --sidebar-border: 235 35% 15%;
+    --sidebar-ring: 165 80% 40%;
   }
 
-  .dark {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 95%;
+  .light {
+    --background: 180 20% 98%;
+    --foreground: 235 35% 10%;
 
-    --card: 0 0% 9%;
-    --card-foreground: 0 0% 95%;
+    --card: 180 20% 98%;
+    --card-foreground: 235 35% 10%;
 
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 180 20% 98%;
+    --popover-foreground: 235 35% 10%;
 
-    --primary: 330 95% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 165 80% 40%;
+    --primary-foreground: 180 20% 98%;
 
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 345 80% 50%;
+    --secondary-foreground: 180 20% 98%;
 
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 180 10% 85%;
+    --muted-foreground: 235 35% 35%;
 
-    --accent: 330 95% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 275 80% 50%;
+    --accent-foreground: 180 20% 98%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 345 80% 50%;
+    --destructive-foreground: 180 20% 98%;
 
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 240 4% 30%;
+    --border: 180 10% 85%;
+    --input: 180 10% 85%;
+    --ring: 165 80% 40%;
 
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 330 95% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4% 16%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 330 95% 60%;
+    --sidebar-background: 235 35% 10%;
+    --sidebar-foreground: 180 20% 98%;
+    --sidebar-primary: 165 80% 40%;
+    --sidebar-primary-foreground: 180 20% 98%;
+    --sidebar-accent: 235 20% 20%;
+    --sidebar-accent-foreground: 180 20% 98%;
+    --sidebar-border: 235 35% 25%;
+    --sidebar-ring: 165 80% 40%;
   }
 }
 
@@ -90,7 +94,15 @@
   }
 
   body {
-    @apply bg-background text-foreground transition-colors duration-200;
+    @apply bg-background text-foreground transition-colors duration-200 font-mono;
+    background-size: 50px 50px;
+    background-image: linear-gradient(rgba(0, 255, 200, 0.05) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(0, 255, 200, 0.05) 1px, transparent 1px);
+    text-shadow: 0 0 2px rgba(0, 255, 200, 0.5);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-cyber tracking-wider;
   }
 
   /* Custom scrollbar */
@@ -101,21 +113,31 @@
 
   ::-webkit-scrollbar-track {
     @apply bg-background;
+    background-image: linear-gradient(rgba(0, 255, 200, 0.05) 1px, transparent 1px);
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted rounded-full;
+    @apply bg-cyber-primary/30 rounded-none border border-cyber-primary/50;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground;
+    @apply bg-cyber-primary/50;
   }
 }
 
 @keyframes flicker {
-  0% { opacity: 0.2; }
-  50% { opacity: 0.1; }
-  100% { opacity: 0.2; }
+  0% { opacity: 0.3; }
+  50% { opacity: 0.2; }
+  100% { opacity: 0.3; }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
 }
 
 .cyberpunk-grid {
@@ -125,15 +147,86 @@
   width: 100%;
   height: 100%;
   background-image: 
-    linear-gradient(transparent 0%, rgba(255, 20, 147, 0.05) 2%, transparent 2.5%),
-    linear-gradient(90deg, transparent 0%, rgba(255, 20, 147, 0.05) 2%, transparent 2.5%);
+    linear-gradient(transparent 0%, rgba(0, 255, 200, 0.05) 2%, transparent 2.5%),
+    linear-gradient(90deg, transparent 0%, rgba(0, 255, 200, 0.05) 2%, transparent 2.5%);
   background-size: 50px 50px;
-  animation: flicker 2s infinite;
   pointer-events: none;
+  z-index: 1;
+}
+
+.cyberpunk-scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: rgba(0, 255, 200, 0.1);
+  opacity: 0.3;
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cyberpunk-glitch {
+  animation: glitch 0.4s linear infinite;
 }
 
 .cyberpunk-glow {
-  transition: opacity 1s ease-in-out;
+  text-shadow: 0 0 5px #00FFC8, 0 0 10px #00FFC8;
+  transition: all 0.3s ease-in-out;
+}
+
+.cyberpunk-box {
+  border: 1px solid rgba(0, 255, 200, 0.5);
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.5), inset 0 0 5px rgba(0, 255, 200, 0.2);
+  background-color: rgba(15, 15, 20, 0.8);
+  backdrop-filter: blur(5px);
+}
+
+.cyberpunk-terminal {
+  font-family: 'Share Tech Mono', monospace;
+  background-color: rgba(15, 15, 20, 0.9);
+  border: 1px solid rgba(0, 255, 200, 0.5);
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+  padding: 20px;
+  color: #00FFC8;
+  position: relative;
+  overflow: hidden;
+}
+
+.cyberpunk-terminal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    transparent 0px,
+    transparent 1px,
+    rgba(0, 255, 200, 0.03) 1px,
+    rgba(0, 255, 200, 0.03) 2px
+  );
+  pointer-events: none;
+}
+
+.terminal-text {
+  font-family: 'Share Tech Mono', monospace;
+  color: #00FFC8;
+}
+
+.terminal-prompt::before {
+  content: "$ ";
+  color: #FF003C;
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background-color: #00FFC8;
+  animation: blink 1s infinite;
+  vertical-align: middle;
 }
 
 /* Custom scrollbar for the chat */
@@ -146,28 +239,54 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 20, 147, 0.3);
-  border-radius: 2px;
+  background-color: rgba(0, 255, 200, 0.5);
+  border-radius: 0;
+  border: 1px solid rgba(0, 255, 200, 0.3);
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 20, 147, 0.5);
+  background-color: rgba(0, 255, 200, 0.7);
 }
 
 @layer components {
   .severino-card {
-    @apply bg-card rounded-lg border border-border p-4 transition-all hover:shadow-md hover:shadow-primary/20;
+    @apply bg-card rounded-sm border border-cyber-primary/30 p-4 transition-all hover:shadow-cyber relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:h-[1px] before:w-0 before:bg-cyber-primary before:transition-all before:duration-500 hover:before:w-full after:content-[''] after:absolute after:right-0 after:bottom-0 after:h-[1px] after:w-0 after:bg-cyber-primary after:transition-all after:duration-500 hover:after:w-full;
   }
   
   .severino-input {
-    @apply bg-input border border-border rounded-md p-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50;
+    @apply bg-card/80 border border-cyber-primary/30 rounded-sm p-2 text-foreground focus:outline-none focus:ring-1 focus:ring-cyber-primary focus:border-cyber-primary/50 shadow-cyber-input font-mono placeholder:text-foreground/30;
   }
   
   .severino-button {
-    @apply bg-primary text-white px-4 py-2 rounded-md hover:bg-opacity-80 transition-all;
+    @apply bg-cyber-primary text-cyber-dark px-4 py-2 rounded-sm hover:bg-cyber-primary/80 transition-all border border-cyber-primary/50 hover:shadow-cyber relative overflow-hidden;
   }
   
   .severino-button-secondary {
-    @apply bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-muted transition-all;
+    @apply bg-transparent text-cyber-primary px-4 py-2 rounded-sm hover:bg-cyber-primary/10 transition-all border border-cyber-primary/30 hover:border-cyber-primary/50 hover:shadow-cyber;
+  }
+
+  .severino-button-danger {
+    @apply bg-transparent text-cyber-secondary px-4 py-2 rounded-sm hover:bg-cyber-secondary/10 transition-all border border-cyber-secondary/30 hover:border-cyber-secondary/50 hover:shadow-cyber-button;
+  }
+
+  .terminal-header {
+    @apply flex items-center border-b border-cyber-primary/30 pb-2 mb-4 text-sm;
+  }
+
+  .terminal-header::before {
+    content: "~/severino $ ";
+    @apply text-cyber-secondary mr-2;
+  }
+
+  .cyber-badge {
+    @apply inline-flex items-center rounded-sm px-2 py-1 text-xs bg-cyber-primary/10 text-cyber-primary border border-cyber-primary/30;
+  }
+
+  .cyber-badge-secondary {
+    @apply inline-flex items-center rounded-sm px-2 py-1 text-xs bg-cyber-secondary/10 text-cyber-secondary border border-cyber-secondary/30;
+  }
+
+  .cyber-link {
+    @apply text-cyber-primary hover:text-cyber-primary/80 underline decoration-cyber-primary/30 hover:decoration-cyber-primary/80 transition-colors;
   }
 }

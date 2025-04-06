@@ -10,8 +10,8 @@ interface AuthState {
   session: Session | null;
   loading: boolean;
   login: (provider?: 'google') => Promise<void>;
-  signUp: (email: string, password: string) => Promise<{ error: any | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: any | null }>;
+  signUp: (email: string, password: string, username?: string) => Promise<{ error: any | null }>;
+  signIn: (emailOrUsername: string, password: string, isUsername?: boolean) => Promise<{ error: any | null }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -30,7 +30,7 @@ export const useAuthStore = create<AuthState>()(
             const { error } = await supabase.auth.signInWithOAuth({
               provider: 'google',
               options: {
-                redirectTo: `https://severino-ai-central.lovable.app/dashboard`,
+                redirectTo: `${window.location.origin}/dashboard`,
               },
             });
             
@@ -42,16 +42,34 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       
-      signUp: async (email, password) => {
+      signUp: async (email, password, username) => {
         try {
+          const options = username 
+            ? { 
+                data: { 
+                  username 
+                } 
+              } 
+            : undefined;
+            
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
+            options
           });
           
           if (error) return { error };
           
           if (data.session) {
+            // Create profile record
+            if (username) {
+              await supabase.from('profiles').upsert({
+                id: data.user.id,
+                username,
+                updated_at: new Date().toISOString(),
+              });
+            }
+            
             set({
               isAuthenticated: true,
               user: data.user,
@@ -66,22 +84,64 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       
-      signIn: async (email, password) => {
+      signIn: async (emailOrUsername, password, isUsername = false) => {
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          
-          if (error) return { error };
-          
-          set({
-            isAuthenticated: true,
-            user: data.user,
-            session: data.session,
-          });
-          
-          return { error: null };
+          if (isUsername) {
+            // First, find the user by username
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('username', emailOrUsername)
+              .single();
+              
+            if (profileError || !profileData) {
+              return { error: { message: 'Usuário não encontrado' } };
+            }
+            
+            // Find the email associated with the profile
+            const { data: userData, error: userError } = await supabase
+              .from('auth.users')
+              .select('email')
+              .eq('id', profileData.id)
+              .single();
+            
+            if (userError || !userData) {
+              return { error: { message: 'Erro ao buscar dados do usuário' } };
+            }
+            
+            // Now sign in with email and password
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email: userData.email,
+              password,
+            });
+            
+            if (error) return { error };
+            
+            set({
+              isAuthenticated: true,
+              user: data.user,
+              session: data.session,
+            });
+            
+            return { error: null };
+          } 
+          else {
+            // Regular email login
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email: emailOrUsername,
+              password,
+            });
+            
+            if (error) return { error };
+            
+            set({
+              isAuthenticated: true,
+              user: data.user,
+              session: data.session,
+            });
+            
+            return { error: null };
+          }
         } catch (error) {
           console.error('Error during sign in:', error);
           return { error };

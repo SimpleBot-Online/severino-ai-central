@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Note, Task, UsefulLink, Idea, ChatMessage, Prompt, ChipInstance, Settings
 } from '../types';
@@ -19,13 +20,14 @@ export const useNotesStore = create<NotesState>()(
     (set) => ({
       notes: [],
       addNote: (title, content) => {
+        const userId = supabase.auth.getUser().then(({ data }) => data?.user?.id || '') || '';
         const newNote: Note = {
           id: uuidv4(),
           title,
           content,
           createdAt: new Date(),
           updatedAt: new Date(),
-          userId: ''  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
         };
         set((state) => ({ notes: [newNote, ...state.notes] }));
       },
@@ -67,7 +69,7 @@ export const useTasksStore = create<TasksState>()(
           dueDate,
           status: 'pending',
           createdAt: new Date(),
-          userId: ''  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
         };
         set((state) => ({ tasks: [newTask, ...state.tasks] }));
       },
@@ -115,7 +117,7 @@ export const useLinksStore = create<LinksState>()(
           description,
           category,
           createdAt: new Date(),
-          userId: ''  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
         };
         set((state) => ({ links: [newLink, ...state.links] }));
       },
@@ -155,7 +157,7 @@ export const useIdeasStore = create<IdeasState>()(
           description,
           category,
           createdAt: new Date(),
-          userId: ''  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
         };
         set((state) => ({ ideas: [newIdea, ...state.ideas] }));
       },
@@ -192,7 +194,7 @@ export const useChatStore = create<ChatState>((set) => ({
       sender,
       content,
       timestamp: new Date(),
-      userId: ''  // Will be replaced with actual user ID when using Supabase
+      userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
     };
     set((state) => ({ messages: [...state.messages, newMessage] }));
   },
@@ -206,7 +208,7 @@ export const useChatStore = create<ChatState>((set) => ({
         sender: 'user',
         content,
         timestamp: new Date(),
-        userId: ''  // Will be replaced with actual user ID when using Supabase
+        userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
       };
       set((state) => ({ messages: [...state.messages, userMessage] }));
 
@@ -216,7 +218,7 @@ export const useChatStore = create<ChatState>((set) => ({
           sender: 'CEO',
           content: `Response to: ${content}`,
           timestamp: new Date(),
-          userId: ''  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
         };
         set((state) => ({ messages: [...state.messages, botResponse] }));
       }, 1000);
@@ -246,7 +248,7 @@ export const usePromptsStore = create<PromptsState>()(
           content,
           category,
           createdAt: new Date(),
-          userId: ''  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
         };
         set((state) => ({ 
           prompts: [newPrompt, ...state.prompts] 
@@ -300,7 +302,7 @@ export const useChipInstancesStore = create<ChipInstancesState>()(
           phone,
           status: 'inactive',
           createdAt: new Date(),
-          userId: ''  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
         };
         set((state) => ({ instances: [newInstance, ...state.instances] }));
       },
@@ -359,7 +361,7 @@ const defaultSettings: Settings = {
   evolutionApiKey: '',
   theme: 'dark',
   language: 'pt',
-  userId: ''  // Will be replaced with actual user ID when using Supabase
+  userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
 };
 
 export const useSettingsStore = create<SettingsState>()(

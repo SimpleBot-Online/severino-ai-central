@@ -115,7 +115,7 @@ export async function getUserSettings(userId: string) {
       return null;
     }
     
-    return data as unknown as SupabaseSettings;
+    return data as SupabaseSettings;
   } catch (error) {
     console.error('Error getting user settings:', error);
     return null;
@@ -265,7 +265,7 @@ export async function getTasks(userId: string) {
       return [];
     }
     
-    return data as unknown as SupabaseTask[];
+    return data as SupabaseTask[];
   } catch (error) {
     console.error('Error getting tasks:', error);
     return [];
@@ -291,7 +291,7 @@ export async function createTask(userId: string, task: { title: string; descript
       return { success: false, error };
     }
     
-    return { success: true, data: data as unknown as SupabaseTask };
+    return { success: true, data: data as SupabaseTask };
   } catch (error) {
     console.error('Error creating task:', error);
     return { success: false, error };

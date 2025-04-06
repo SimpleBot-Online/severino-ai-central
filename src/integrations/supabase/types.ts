@@ -9,6 +9,90 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chips: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ideas: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      links: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           content: string | null
@@ -63,12 +147,136 @@ export type Database = {
         }
         Relationships: []
       }
+      prompts: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          created_at: string
+          evolution_api_key: string | null
+          id: string
+          language: string
+          openai_api_key: string | null
+          theme: string
+          updated_at: string
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          evolution_api_key?: string | null
+          id?: string
+          language?: string
+          openai_api_key?: string | null
+          theme?: string
+          updated_at?: string
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          evolution_api_key?: string | null
+          id?: string
+          language?: string
+          openai_api_key?: string | null
+          theme?: string
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_chips_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_ideas_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_links_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_notes_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_profiles_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_prompts_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_settings_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_tasks_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -23,7 +23,8 @@ type AuthPersistState = {
   session: Session | null;
 }
 
-export const useAuthStore = create<AuthState>()(
+// Use more explicit typing to prevent deep type instantiation
+const authStore = create<AuthState>()(
   persist(
     (set) => ({
       isAuthenticated: false,
@@ -191,14 +192,21 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'severino-auth-storage',
-      partialize: (state): AuthPersistState => ({ 
-        isAuthenticated: state.isAuthenticated,
-        user: state.user,
-        session: state.session
-      }),
+      partialize: (state) => {
+        // Explicitly return the AuthPersistState type to avoid deep type instantiation
+        const partialState: AuthPersistState = { 
+          isAuthenticated: state.isAuthenticated,
+          user: state.user,
+          session: state.session
+        };
+        return partialState;
+      },
     }
   )
 );
+
+// Export the store
+export const useAuthStore = authStore;
 
 // Initialize auth state when the app loads
 if (typeof window !== 'undefined') {

@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +14,13 @@ interface AuthState {
   signIn: (emailOrUsername: string, password: string, isUsername?: boolean) => Promise<{ error: any | null }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
+}
+
+// Define a simple interface for the persisted state to avoid type recursion
+interface PersistedAuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  session: Session | null;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -179,15 +187,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'severino-auth-storage',
-      partialize: (state) => ({
+      partialize: (state): PersistedAuthState => ({
         isAuthenticated: state.isAuthenticated,
         user: state.user,
         session: state.session
-      }) as {
-        isAuthenticated: boolean;
-        user: User | null;
-        session: Session | null;
-      }
+      })
     }
   )
 );

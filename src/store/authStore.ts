@@ -18,7 +18,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       isAuthenticated: false,
       user: null,
       session: null,
@@ -63,11 +63,15 @@ export const useAuthStore = create<AuthState>()(
           if (data.session) {
             // Create profile record
             if (username) {
-              await supabase.from('profiles').upsert({
+              const { error: profileError } = await supabase.from('profiles').upsert({
                 id: data.user.id,
                 username,
                 updated_at: new Date().toISOString(),
               });
+              
+              if (profileError) {
+                console.error('Error creating profile:', profileError);
+              }
             }
             
             set({
@@ -98,9 +102,9 @@ export const useAuthStore = create<AuthState>()(
               return { error: { message: 'Usuário não encontrado' } };
             }
             
-            // Now sign in with email and password
+            // Now sign in with the found email and password
             const { data, error } = await supabase.auth.signInWithPassword({
-              email: emailOrUsername, // Use email directly
+              email: emailOrUsername, // Use the email directly as a fallback
               password,
             });
             
@@ -152,7 +156,8 @@ export const useAuthStore = create<AuthState>()(
       
       refreshSession: async () => {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const { data } = await supabase.auth.getSession();
+          const session = data.session;
           
           if (session) {
             set({
@@ -192,10 +197,8 @@ export const useAuthStore = create<AuthState>()(
 if (typeof window !== 'undefined') {
   // Set up auth state listener
   supabase.auth.onAuthStateChange((event, session) => {
-    const store = useAuthStore.getState();
-    
     if (session) {
-      store.refreshSession();
+      useAuthStore.getState().refreshSession();
     } else if (event === 'SIGNED_OUT') {
       useAuthStore.setState({
         isAuthenticated: false,

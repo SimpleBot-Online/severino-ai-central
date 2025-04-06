@@ -1,4 +1,3 @@
-
 export interface Note {
   id: string;
   title: string;
@@ -69,6 +68,8 @@ export interface Settings {
   evolutionApiKey: string;
   theme: 'dark' | 'light';
   language: 'pt' | 'en';
+  enableNotifications: boolean;
+  autoSave: boolean;
   userId: string;
 }
 
@@ -82,7 +83,6 @@ export interface UserProfile {
   updatedAt: string;
 }
 
-// Supabase-specific types
 export interface SupabaseNote {
   id: string;
   title: string;
@@ -156,6 +156,8 @@ export interface SupabaseSettings {
   evolution_api_key: string | null;
   theme: 'dark' | 'light';
   language: 'pt' | 'en';
+  enable_notifications: boolean;
+  auto_save: boolean;
   user_id: string;
   created_at: string;
   updated_at: string;

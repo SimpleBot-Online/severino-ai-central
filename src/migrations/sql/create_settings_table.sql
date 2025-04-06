@@ -11,6 +11,8 @@ begin
       evolution_api_key text,
       theme text not null check (theme in ('dark', 'light')) default 'dark',
       language text not null check (language in ('pt', 'en')) default 'pt',
+      enable_notifications boolean not null default false,
+      auto_save boolean not null default true,
       user_id uuid references auth.users not null unique,
       created_at timestamp with time zone default now(),
       updated_at timestamp with time zone default now()

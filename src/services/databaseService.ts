@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   SupabaseNote, 
@@ -33,7 +32,9 @@ export async function initializeUserData(userId: string) {
         .insert({
           user_id: userId,
           theme: 'dark',
-          language: 'pt'
+          language: 'pt',
+          enable_notifications: false,
+          auto_save: true
         });
         
       if (createSettingsError) {
@@ -115,7 +116,17 @@ export async function getUserSettings(userId: string) {
       return null;
     }
     
-    return data as SupabaseSettings;
+    // Convert database format to app format
+    if (data) {
+      const settings: SupabaseSettings = data;
+      return {
+        ...settings,
+        enableNotifications: settings.enable_notifications,
+        autoSave: settings.auto_save
+      };
+    }
+    
+    return null;
   } catch (error) {
     console.error('Error getting user settings:', error);
     return null;
@@ -123,14 +134,49 @@ export async function getUserSettings(userId: string) {
 }
 
 // Function to update user settings
-export async function updateUserSettings(userId: string, settingsData: Partial<SupabaseSettings>) {
+export async function updateUserSettings(userId: string, settingsData: Partial<SupabaseSettings | Settings>) {
   try {
+    // Convert app format to database format if needed
+    const dbFormatData: any = { ...settingsData };
+    
+    if ('enableNotifications' in settingsData) {
+      dbFormatData.enable_notifications = settingsData.enableNotifications;
+      delete dbFormatData.enableNotifications;
+    }
+    
+    if ('autoSave' in settingsData) {
+      dbFormatData.auto_save = settingsData.autoSave;
+      delete dbFormatData.autoSave;
+    }
+    
+    // Convert other camelCase keys to snake_case for database
+    if ('openaiApiKey' in settingsData) {
+      dbFormatData.openai_api_key = settingsData.openaiApiKey;
+      delete dbFormatData.openaiApiKey;
+    }
+    
+    if ('webhookUrl' in settingsData) {
+      dbFormatData.webhook_url = settingsData.webhookUrl;
+      delete dbFormatData.webhookUrl;
+    }
+    
+    if ('evolutionApiKey' in settingsData) {
+      dbFormatData.evolution_api_key = settingsData.evolutionApiKey;
+      delete dbFormatData.evolutionApiKey;
+    }
+    
+    // Add userId as user_id if needed
+    if ('userId' in settingsData) {
+      dbFormatData.user_id = settingsData.userId;
+      delete dbFormatData.userId;
+    }
+    
+    // Update timestamp
+    dbFormatData.updated_at = new Date().toISOString();
+    
     const { error } = await supabase
       .from('settings')
-      .update({
-        ...settingsData,
-        updated_at: new Date().toISOString()
-      })
+      .update(dbFormatData)
       .eq('user_id', userId);
       
     if (error) {

@@ -361,6 +361,8 @@ const defaultSettings: Settings = {
   evolutionApiKey: '',
   theme: 'dark',
   language: 'pt',
+  enableNotifications: false,
+  autoSave: true,
   userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
 };
 

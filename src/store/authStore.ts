@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,13 +14,6 @@ interface AuthState {
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
-
-// Create a simple non-generic object type for persisted state
-type PersistState = {
-  isAuthenticated: boolean;
-  user: User | null;
-  session: Session | null;
-};
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -68,7 +60,6 @@ export const useAuthStore = create<AuthState>()(
           if (error) return { error };
           
           if (data.session) {
-            // Create profile record
             if (username) {
               const { error: profileError } = await supabase.from('profiles').upsert({
                 id: data.user.id,
@@ -98,7 +89,6 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (emailOrUsername, password, isUsername = false) => {
         try {
           if (isUsername) {
-            // First, find the user by username
             const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
@@ -109,9 +99,8 @@ export const useAuthStore = create<AuthState>()(
               return { error: { message: 'Usuário não encontrado' } };
             }
             
-            // Now sign in with the found email and password
             const { data, error } = await supabase.auth.signInWithPassword({
-              email: emailOrUsername, // Use the email directly as a fallback
+              email: emailOrUsername,
               password,
             });
             
@@ -126,7 +115,6 @@ export const useAuthStore = create<AuthState>()(
             return { error: null };
           } 
           else {
-            // Regular email login
             const { data, error } = await supabase.auth.signInWithPassword({
               email: emailOrUsername,
               password,
@@ -191,22 +179,20 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'severino-auth-storage',
-      // Fix the type instantiation depth error with a simpler approach
-      partialize: (state) => {
-        // Explicitly return a plain object without type assertions
-        return {
-          isAuthenticated: state.isAuthenticated,
-          user: state.user,
-          session: state.session
-        };
+      partialize: (state) => ({
+        isAuthenticated: state.isAuthenticated,
+        user: state.user,
+        session: state.session
+      }) as {
+        isAuthenticated: boolean;
+        user: User | null;
+        session: Session | null;
       }
     }
   )
 );
 
-// Initialize auth state when the app loads
 if (typeof window !== 'undefined') {
-  // Set up auth state listener
   supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
       useAuthStore.getState().refreshSession();
@@ -220,6 +206,5 @@ if (typeof window !== 'undefined') {
     }
   });
   
-  // Check for existing session on load
   useAuthStore.getState().refreshSession();
 }

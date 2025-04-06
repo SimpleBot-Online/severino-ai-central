@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Menu, Bell, User, Settings, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -18,6 +20,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const { user, logout } = useAuthStore();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -35,7 +38,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         </button>
 
         <div className="flex items-center gap-2 flex-1">
-       
           <h1 className="text-xl font-semibold text-foreground hidden md:block"></h1>
         </div>
 
@@ -67,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 bg-card border-border">
               <div className="flex items-center justify-start gap-2 p-2">
                 <div className="flex flex-col space-y-1 leading-none">
                   {user?.email && (
@@ -79,11 +81,11 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Perfil</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Configurações</span>
               </DropdownMenuItem>

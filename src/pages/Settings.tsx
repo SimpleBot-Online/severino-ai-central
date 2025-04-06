@@ -1,10 +1,11 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { useSettingsStore } from '../store/dataStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Settings as SettingsIcon, 
   Save, 
@@ -15,7 +16,8 @@ import {
   Eye, 
   EyeOff,
   Sun,
-  Moon
+  Moon,
+  Check
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,19 +28,27 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { updateUserSettings } from '@/services/databaseService';
+import { useAuthStore } from '@/store/authStore';
 
 const Settings = () => {
   const { settings, updateSettings } = useSettingsStore();
+  const { user } = useAuthStore();
   const { theme, setTheme } = useTheme();
-  const [formState, setFormState] = React.useState({
+  const [formState, setFormState] = useState({
     openaiApiKey: settings.openaiApiKey || '',
     webhookUrl: settings.webhookUrl || 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
     evolutionApiKey: settings.evolutionApiKey || '',
     theme: settings.theme || 'dark',
     language: settings.language || 'pt',
+    enableNotifications: settings.enableNotifications || false,
+    autoSave: settings.autoSave || true,
   });
-  const [showOpenAIKey, setShowOpenAIKey] = React.useState(false);
-  const [showEvolutionKey, setShowEvolutionKey] = React.useState(false);
+  const [showOpenAIKey, setShowOpenAIKey] = useState(false);
+  const [showEvolutionKey, setShowEvolutionKey] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   // Sync theme state with settings
@@ -49,7 +59,7 @@ const Settings = () => {
     }));
   }, [theme]);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field, value) => {
     setFormState({
       ...formState,
       [field]: value,
@@ -65,24 +75,99 @@ const Settings = () => {
     });
   };
 
-  const handleSave = () => {
-    updateSettings(formState);
+  const handleSave = async () => {
+    setIsSaving(true);
     
-    toast({
-      title: "Configurações salvas",
-      description: "Suas configurações foram atualizadas com sucesso.",
+    try {
+      // Save to store first (local state)
+      updateSettings(formState);
+      
+      // Save to database if user is authenticated
+      if (user?.id) {
+        await updateUserSettings(user.id, {
+          ...formState,
+          user_id: user.id
+        });
+      }
+      
+      toast({
+        title: "Configurações salvas",
+        description: "Suas configurações foram atualizadas com sucesso.",
+        className: "bg-green-800 text-white border-green-700",
+      });
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar suas configurações.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleReset = () => {
+    setFormState({
+      openaiApiKey: '',
+      webhookUrl: 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
+      evolutionApiKey: '',
+      theme: 'dark',
+      language: 'pt',
+      enableNotifications: false,
+      autoSave: true,
     });
+    setTheme('dark');
   };
 
   return (
     <AppLayout>
       <div className="animate-fadeIn">
-        <div className="flex items-center mb-6">
+        <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Configurações</h1>
+          <div className="flex gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">Redefinir</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Redefinir configurações</DialogTitle>
+                  <DialogDescription>
+                    Tem certeza que deseja redefinir todas as configurações para os valores padrão?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => {}}>Cancelar</Button>
+                  <Button variant="destructive" onClick={handleReset}>Redefinir</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Button 
+              onClick={handleSave} 
+              className="bg-severino-pink hover:bg-severino-pink/90"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <span className="animate-pulse flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Salvando...
+                </span>
+              ) : (
+                <>
+                  <Save size={16} className="mr-2" />
+                  Salvar Configurações
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="api" className="space-y-6">
-          <TabsList className="bg-severino-gray border-severino-lightgray">
+          <TabsList className="bg-card border-border">
             <TabsTrigger value="api" className="data-[state=active]:bg-severino-pink">
               Chaves de API
             </TabsTrigger>
@@ -92,12 +177,15 @@ const Settings = () => {
             <TabsTrigger value="general" className="data-[state=active]:bg-severino-pink">
               Geral
             </TabsTrigger>
+            <TabsTrigger value="advanced" className="data-[state=active]:bg-severino-pink">
+              Avançado
+            </TabsTrigger>
           </TabsList>
 
           {/* API Keys Tab */}
           <TabsContent value="api">
             <div className="grid grid-cols-1 gap-6">
-              <Card className="bg-severino-gray border-severino-lightgray">
+              <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Key size={18} className="mr-2 text-severino-pink" />
@@ -109,51 +197,53 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">OpenAI API Key</label>
+                    <Label htmlFor="openai_key">OpenAI API Key</Label>
                     <div className="flex">
                       <div className="relative flex-1">
                         <Input
+                          id="openai_key"
                           type={showOpenAIKey ? "text" : "password"}
                           placeholder="sk-..."
                           value={formState.openaiApiKey}
                           onChange={(e) => handleChange('openaiApiKey', e.target.value)}
-                          className="bg-severino-lightgray border-severino-lightgray pr-10"
+                          className="pr-10"
                         />
                         <button
                           type="button"
                           onClick={() => setShowOpenAIKey(!showOpenAIKey)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-foreground"
                         >
                           {showOpenAIKey ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       Necessária para o funcionamento do Prompt Maker.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Evolution API Key</label>
+                    <Label htmlFor="evolution_key">Evolution API Key</Label>
                     <div className="flex">
                       <div className="relative flex-1">
                         <Input
+                          id="evolution_key"
                           type={showEvolutionKey ? "text" : "password"}
                           placeholder="sua-chave-evolution-api"
                           value={formState.evolutionApiKey}
                           onChange={(e) => handleChange('evolutionApiKey', e.target.value)}
-                          className="bg-severino-lightgray border-severino-lightgray pr-10"
+                          className="pr-10"
                         />
                         <button
                           type="button"
                           onClick={() => setShowEvolutionKey(!showEvolutionKey)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-foreground"
                         >
                           {showEvolutionKey ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       Necessária para o aquecimento de chips.
                     </p>
                   </div>
@@ -165,7 +255,7 @@ const Settings = () => {
           {/* Integrations Tab */}
           <TabsContent value="integrations">
             <div className="grid grid-cols-1 gap-6">
-              <Card className="bg-severino-gray border-severino-lightgray">
+              <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Webhook size={18} className="mr-2 text-severino-pink" />
@@ -177,14 +267,14 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">URL do Webhook (ChatCEO)</label>
+                    <Label htmlFor="webhook_url">URL do Webhook (ChatCEO)</Label>
                     <Input
+                      id="webhook_url"
                       placeholder="https://seu-webhook-url.com"
                       value={formState.webhookUrl}
                       onChange={(e) => handleChange('webhookUrl', e.target.value)}
-                      className="bg-severino-lightgray border-severino-lightgray"
                     />
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       URL do webhook para o Chat CEO. Configuração necessária para envio de mensagens.
                     </p>
                   </div>
@@ -196,7 +286,7 @@ const Settings = () => {
           {/* General Tab */}
           <TabsContent value="general">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-severino-gray border-severino-lightgray">
+              <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Globe size={18} className="mr-2 text-severino-pink" />
@@ -215,7 +305,7 @@ const Settings = () => {
                         onChange={() => handleChange('language', 'pt')}
                         className="h-4 w-4 accent-severino-pink"
                       />
-                      <label htmlFor="lang-pt">Português</label>
+                      <Label htmlFor="lang-pt">Português</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
@@ -227,13 +317,13 @@ const Settings = () => {
                         onChange={() => handleChange('language', 'en')}
                         className="h-4 w-4 accent-severino-pink"
                       />
-                      <label htmlFor="lang-en">English</label>
+                      <Label htmlFor="lang-en">English</Label>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-severino-gray border-severino-lightgray">
+              <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <User size={18} className="mr-2 text-severino-pink" />
@@ -259,17 +349,57 @@ const Settings = () => {
               </Card>
             </div>
           </TabsContent>
+          
+          {/* Advanced Tab */}
+          <TabsContent value="advanced">
+            <div className="grid grid-cols-1 gap-6">
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <SettingsIcon size={18} className="mr-2 text-severino-pink" />
+                    Configurações Avançadas
+                  </CardTitle>
+                  <CardDescription>
+                    Ajustes avançados para personalizar sua experiência.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="notifications">Notificações</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Receber notificações do sistema
+                        </p>
+                      </div>
+                      <Switch
+                        id="notifications"
+                        checked={formState.enableNotifications}
+                        onCheckedChange={(checked) => handleChange('enableNotifications', checked)}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="autosave">Salvamento Automático</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Salvar automaticamente alterações
+                        </p>
+                      </div>
+                      <Switch
+                        id="autosave"
+                        checked={formState.autoSave}
+                        onCheckedChange={(checked) => handleChange('autoSave', checked)}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
-
-        <div className="flex justify-end mt-6">
-          <Button 
-            onClick={handleSave} 
-            className="bg-severino-pink hover:bg-severino-pink/90"
-          >
-            <Save size={16} className="mr-2" />
-            Salvar Configurações
-          </Button>
-        </div>
       </div>
     </AppLayout>
   );

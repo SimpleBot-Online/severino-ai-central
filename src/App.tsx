@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./hooks/use-theme";
-import AppLayout from "./components/Layout/AppLayout";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
@@ -20,6 +19,7 @@ import ChipHeating from "./pages/ChipHeating";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import SavedPrompts from "./pages/SavedPrompts";
+import MelhorRobo from "./pages/MelhorRobo";
 import { useAuthStore } from "./store/authStore";
 import { useInitDatabase } from "./hooks/useInitDatabase";
 import { useEffect } from "react";
@@ -53,7 +53,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
   
-  return isAuthenticated ? <AppLayout>{children}</AppLayout> : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 const App = () => {
@@ -98,6 +98,7 @@ const App = () => {
               <Route path="/saved-prompts" element={<PrivateRoute><SavedPrompts /></PrivateRoute>} />
               <Route path="/assistants" element={<PrivateRoute><Assistants /></PrivateRoute>} />
               <Route path="/chips" element={<PrivateRoute><ChipHeating /></PrivateRoute>} />
+              <Route path="/melhor-robo" element={<PrivateRoute><MelhorRobo /></PrivateRoute>} />
               <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
               
               <Route path="*" element={<NotFound />} />

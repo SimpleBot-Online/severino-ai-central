@@ -1,6 +1,7 @@
+
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Home, FileText, CheckSquare, Link as LinkIcon, Lightbulb, MessageSquare, Terminal, Cpu, Settings, ChevronLeft, Book, Bot } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Home, FileText, CheckSquare, Link as LinkIcon, Lightbulb, MessageSquare, Terminal, Cpu, Settings, ChevronLeft, Book, Bot, Globe } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -13,9 +14,10 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) => {
   const { logout } = useAuthStore();
+  const location = useLocation();
 
   const menuItems = [
-    { name: 'Dashboard', path: '/', icon: <Home size={20} /> },
+    { name: 'Dashboard', path: '/dashboard', icon: <Home size={20} /> },
     { name: 'Anotações', path: '/notes', icon: <FileText size={20} /> },
     { name: 'Tarefas', path: '/tasks', icon: <CheckSquare size={20} /> },
     { name: 'Links Úteis', path: '/links', icon: <LinkIcon size={20} /> },
@@ -25,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
     { name: 'Prompts Salvos', path: '/saved-prompts', icon: <Book size={20} /> },
     { name: 'Assistentes', path: '/assistants', icon: <Bot size={20} /> },
     { name: 'Aquecimento de Chips', path: '/chips', icon: <Cpu size={20} /> },
+    { name: 'O Melhor Robô', path: '/melhor-robo', icon: <Globe size={20} /> },
     { name: 'Configurações', path: '/settings', icon: <Settings size={20} /> },
   ];
 
@@ -67,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
                 cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   "transition-colors duration-200",
-                  isActive && "bg-accent text-accent-foreground",
+                  (isActive || location.pathname === item.path) && "bg-accent text-accent-foreground",
                   collapsed && "justify-center"
                 )
               }

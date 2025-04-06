@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, FileText, CheckSquare, Link as LinkIcon, Lightbulb, MessageSquare, Terminal, Cpu, Settings, ChevronLeft, Book, Bot, Globe, MessageCircle } from 'lucide-react';
+import { Home, FileText, CheckSquare, Link as LinkIcon, Lightbulb, MessageSquare, Terminal, Cpu, Settings, ChevronLeft, Book, Bot, Globe } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -26,8 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
     { name: 'Prompt Maker', path: '/prompts', icon: <Terminal size={20} /> },
     { name: 'Prompts Salvos', path: '/saved-prompts', icon: <Book size={20} /> },
     { name: 'Assistentes', path: '/assistants', icon: <Bot size={20} /> },
-    { name: 'FARM', path: '/chips', icon: <Cpu size={20} /> },
-    { name: 'Chat Bubble', path: '/chat-bubble', icon: <MessageCircle size={20} /> },
+    { name: 'Aquecimento de Chips', path: '/chips', icon: <Cpu size={20} /> },
     { name: 'O Melhor Robô', path: '/melhor-robo', icon: <Globe size={20} /> },
     { name: 'Configurações', path: '/settings', icon: <Settings size={20} /> },
   ];

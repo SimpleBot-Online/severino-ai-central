@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { useSettingsStore } from '../store/dataStore';
@@ -17,8 +18,7 @@ import {
   Sun,
   Moon,
   Check,
-  Cpu,
-  MessageCircle
+  Cpu
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTheme } from '@/hooks/use-theme';
@@ -43,7 +43,6 @@ const Settings = () => {
     webhookUrl: settings.webhookUrl || 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
     evolutionApiKey: settings.evolutionApiKey || '',
     webhookEvolutionUrl: settings.webhookEvolutionUrl || '',
-    assistantId: settings.assistantId || '',
     theme: settings.theme || 'dark',
     language: settings.language || 'pt',
     enableNotifications: settings.enableNotifications || false,
@@ -54,6 +53,7 @@ const Settings = () => {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
+  // Sync theme state with settings
   useEffect(() => {
     setFormState(prev => ({
       ...prev,
@@ -81,8 +81,10 @@ const Settings = () => {
     setIsSaving(true);
     
     try {
+      // Save to store first (local state)
       updateSettings(formState);
       
+      // Save to database if user is authenticated
       if (user?.id) {
         await updateUserSettings(user.id, {
           ...formState,
@@ -113,7 +115,6 @@ const Settings = () => {
       webhookUrl: 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
       evolutionApiKey: '',
       webhookEvolutionUrl: '',
-      assistantId: '',
       theme: 'dark',
       language: 'pt',
       enableNotifications: false,
@@ -184,6 +185,7 @@ const Settings = () => {
             </TabsTrigger>
           </TabsList>
 
+          {/* API Keys Tab */}
           <TabsContent value="api">
             <div className="grid grid-cols-1 gap-6">
               <Card className="bg-card border-border">
@@ -248,24 +250,12 @@ const Settings = () => {
                       Necessária para o aquecimento de chips e integração com Evolution API.
                     </p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="assistant_id">Assistente ID (OpenAI)</Label>
-                    <Input
-                      id="assistant_id"
-                      placeholder="asst_..."
-                      value={formState.assistantId}
-                      onChange={(e) => handleChange('assistantId', e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Necessário para o funcionamento do Chat Bubble.
-                    </p>
-                  </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
+          {/* Integrations Tab */}
           <TabsContent value="integrations">
             <div className="grid grid-cols-1 gap-6">
               <Card className="bg-card border-border">
@@ -360,6 +350,7 @@ const Settings = () => {
             </div>
           </TabsContent>
 
+          {/* General Tab */}
           <TabsContent value="general">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="bg-card border-border">
@@ -426,6 +417,7 @@ const Settings = () => {
             </div>
           </TabsContent>
           
+          {/* Advanced Tab */}
           <TabsContent value="advanced">
             <div className="grid grid-cols-1 gap-6">
               <Card className="bg-card border-border">

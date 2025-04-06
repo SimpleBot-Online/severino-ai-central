@@ -1,6 +1,4 @@
 
-
-
 -- Create settings table if it doesn't exist
 create or replace function create_settings_table()
 returns void as $$
@@ -42,5 +40,3 @@ begin
   end if;
 end;
 $$ language plpgsql;
-
-

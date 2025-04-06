@@ -1,4 +1,3 @@
-
 export interface Note {
   id: string;
   title: string;
@@ -67,6 +66,7 @@ export interface Settings {
   openaiApiKey: string;
   webhookUrl: string;
   evolutionApiKey: string;
+  webhookEvolutionUrl: string;
   theme: 'dark' | 'light';
   language: 'pt' | 'en';
   enableNotifications: boolean;
@@ -155,6 +155,7 @@ export interface SupabaseSettings {
   openai_api_key: string | null;
   webhook_url: string | null;
   evolution_api_key: string | null;
+  webhook_evolution_url: string | null;
   theme: 'dark' | 'light';
   language: 'pt' | 'en';
   enable_notifications: boolean;

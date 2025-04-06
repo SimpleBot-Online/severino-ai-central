@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +23,7 @@ type AuthPersistState = {
 }
 
 // Create the store with explicit types to avoid deep instantiation
-const authStore = create<AuthState>()(
+export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       isAuthenticated: false,
@@ -193,20 +192,14 @@ const authStore = create<AuthState>()(
     {
       name: 'severino-auth-storage',
       // Fix the type instantiation issue by explicitly typing the return value
-      partialize: (state) => {
-        const result: AuthPersistState = {
-          isAuthenticated: state.isAuthenticated,
-          user: state.user,
-          session: state.session
-        };
-        return result;
-      }
+      partialize: (state): AuthPersistState => ({
+        isAuthenticated: state.isAuthenticated,
+        user: state.user,
+        session: state.session
+      })
     }
   )
 );
-
-// Export the store
-export const useAuthStore = authStore;
 
 // Initialize auth state when the app loads
 if (typeof window !== 'undefined') {

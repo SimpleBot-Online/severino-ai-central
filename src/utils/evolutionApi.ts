@@ -1,4 +1,3 @@
-
 /**
  * Evolution API Integration Utility
  * 
@@ -22,6 +21,18 @@ interface Instance {
   instanceName: string;
   phoneNumber: string;
   token?: string;
+}
+
+// Define a more inclusive type for webhook data response
+interface WebhookData {
+  event: string;
+  instanceName: string;
+  phoneNumber?: string;
+  message?: string;
+  messageType?: string;
+  status?: string;
+  qrcode?: string;
+  error?: string;
 }
 
 /**
@@ -233,21 +244,14 @@ export const heatUpChip = async (
 /**
  * Parses webhook data from Evolution API
  */
-export const parseWebhookData = (data: any): {
-  event: string;
-  instanceName: string;
-  phoneNumber?: string;
-  message?: string;
-  messageType?: string;
-  status?: string;
-} => {
+export const parseWebhookData = (data: any): WebhookData => {
   try {
     // Extract the event type
     const event = data.event || 'unknown';
     const instanceName = data.instance?.instanceName || 'unknown';
     
     // Default result
-    const result = {
+    const result: WebhookData = {
       event,
       instanceName
     };

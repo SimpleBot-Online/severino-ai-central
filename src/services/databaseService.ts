@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   SupabaseNote, 
@@ -7,7 +8,8 @@ import {
   SupabasePrompt, 
   SupabaseChip, 
   SupabaseProfile, 
-  SupabaseSettings 
+  SupabaseSettings,
+  Settings
 } from '@/types';
 
 // Function to initialize user data (create default settings, etc.)
@@ -118,7 +120,7 @@ export async function getUserSettings(userId: string) {
     
     // Convert database format to app format
     if (data) {
-      const settings: SupabaseSettings = data;
+      const settings: SupabaseSettings = data as SupabaseSettings;
       return {
         ...settings,
         enableNotifications: settings.enable_notifications,

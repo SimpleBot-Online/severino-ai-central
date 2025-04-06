@@ -16,6 +16,13 @@ interface AuthState {
   refreshSession: () => Promise<void>;
 }
 
+// Fix excessive type instantiation by using a more direct approach
+type AuthPersistState = {
+  isAuthenticated: boolean;
+  user: User | null;
+  session: Session | null;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -184,7 +191,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'severino-auth-storage',
-      partialize: (state) => ({ 
+      partialize: (state): AuthPersistState => ({ 
         isAuthenticated: state.isAuthenticated,
         user: state.user,
         session: state.session

@@ -359,6 +359,7 @@ const defaultSettings: Settings = {
   openaiApiKey: '',
   webhookUrl: '',
   evolutionApiKey: '',
+  webhookEvolutionUrl: '', // Added the missing property
   theme: 'dark',
   language: 'pt',
   enableNotifications: false,

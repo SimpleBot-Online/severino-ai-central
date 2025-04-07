@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
@@ -346,47 +345,44 @@ export const useChipInstancesStore = create<ChipInstancesState>()(
   )
 );
 
-// Settings Store
-interface SettingsState {
-  settings: Settings & {
-    apiKey?: string;
-    assistantId?: string;
-  };
-  updateSettings: (updates: Partial<Settings> & { apiKey?: string; assistantId?: string }) => void;
-}
-
-const defaultSettings: Settings = {
-  openaiApiKey: '',
-  webhookUrl: '',
-  evolutionApiKey: '',
-  webhookEvolutionUrl: '', // Added the missing property
-  theme: 'dark',
-  language: 'pt',
-  enableNotifications: false,
-  autoSave: true,
-  userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
-};
-
-export const useSettingsStore = create<SettingsState>()(
+// Fix the Settings store to match the type definition
+export const useSettingsStore = create<{
+  settings: Settings;
+  updateSettings: (updates: Partial<Settings>) => void;
+}>()(
   persist(
     (set) => ({
       settings: {
-        ...defaultSettings,
-        apiKey: localStorage.getItem('openai_api_key') || '',
-        assistantId: localStorage.getItem('openai_assistant_id') || '',
+        openaiApiKey: '',
+        webhookUrl: '',
+        evolutionApiKey: '',
+        webhookEvolutionUrl: '',
+        theme: 'dark',
+        language: 'pt',
+        enableNotifications: false,
+        autoSave: true,
+        userId: 'temporary-id'
       },
       updateSettings: (updates) => {
         set((state) => ({
-          settings: { ...state.settings, ...updates },
+          settings: { ...state.settings, ...updates }
         }));
-        if (updates.apiKey) {
-          localStorage.setItem('openai_api_key', updates.apiKey);
-        }
-        if (updates.assistantId) {
-          localStorage.setItem('openai_assistant_id', updates.assistantId);
-        }
       },
     }),
-    { name: 'severino-settings-storage' }
+    { 
+      name: 'severino-settings-storage',
+      version: 1
+    }
   )
 );
+
+// Export all stores
+export { 
+  useNotesStore, 
+  useTasksStore, 
+  useLinksStore, 
+  useIdeasStore, 
+  useChatStore, 
+  usePromptsStore, 
+  useChipInstancesStore 
+};

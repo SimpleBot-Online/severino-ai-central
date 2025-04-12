@@ -26,7 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
     { name: 'Prompt Maker', path: '/prompts', icon: <Terminal size={20} /> },
     { name: 'Prompts Salvos', path: '/saved-prompts', icon: <Book size={20} /> },
     { name: 'Assistentes', path: '/assistants', icon: <Bot size={20} /> },
-    { name: 'Aquecimento de Chips', path: '/chips', icon: <Cpu size={20} /> },
+    { name: 'Aquecimento de Chips', path: '/farm', icon: <Cpu size={20} /> },
     { name: 'O Melhor Robô', path: '/melhor-robo', icon: <Globe size={20} /> },
     { name: 'Configurações', path: '/settings', icon: <Settings size={20} /> },
   ];

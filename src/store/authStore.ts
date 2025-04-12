@@ -1,22 +1,27 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
-interface AuthState {
+type AuthError = { error: Error | null };
+
+interface AuthStateBase {
   isAuthenticated: boolean;
   user: User | null;
   session: Session | null;
   loading: boolean;
-  login: (provider?: 'google') => Promise<void>;
-  signUp: (email: string, password: string, username?: string) => Promise<{ error: any | null }>;
-  signIn: (emailOrUsername: string, password: string, isUsername?: boolean) => Promise<{ error: any | null }>;
+}
+
+interface AuthActions {
+  login: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, username?: string) => Promise<AuthError>;
+  signIn: (emailOrUsername: string, password: string, isUsername?: boolean) => Promise<AuthError>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
 
-// Define a simple interface for the persisted state to avoid type recursion
+type AuthState = AuthStateBase & AuthActions;
+
 interface PersistedAuthState {
   isAuthenticated: boolean;
   user: User | null;
@@ -31,17 +36,21 @@ export const useAuthStore = create<AuthState>()(
       session: null,
       loading: true,
       
-      login: async (provider = 'google') => {
+      login: async (email: string, password: string) => {
         try {
-          if (provider === 'google') {
-            const { error } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: `${window.location.origin}/dashboard`,
-              },
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+          
+          if (error) throw error;
+          
+          if (data.session) {
+            set({
+              isAuthenticated: true,
+              user: data.user,
+              session: data.session,
             });
-            
-            if (error) throw error;
           }
         } catch (error) {
           console.error('Error during login:', error);
@@ -52,11 +61,7 @@ export const useAuthStore = create<AuthState>()(
       signUp: async (email, password, username) => {
         try {
           const options = username 
-            ? { 
-                data: { 
-                  username 
-                } 
-              } 
+            ? { data: { username } } 
             : undefined;
             
           const { data, error } = await supabase.auth.signUp({
@@ -65,7 +70,7 @@ export const useAuthStore = create<AuthState>()(
             options
           });
           
-          if (error) return { error };
+          if (error) return { error: error as Error };
           
           if (data.session) {
             if (username) {
@@ -90,7 +95,7 @@ export const useAuthStore = create<AuthState>()(
           return { error: null };
         } catch (error) {
           console.error('Error during sign up:', error);
-          return { error };
+          return { error: error instanceof Error ? error : new Error(String(error)) };
         }
       },
       
@@ -104,7 +109,7 @@ export const useAuthStore = create<AuthState>()(
               .single();
               
             if (profileError || !profileData) {
-              return { error: { message: 'Usuário não encontrado' } };
+              return { error: new Error('Usuário não encontrado') };
             }
             
             const { data, error } = await supabase.auth.signInWithPassword({
@@ -112,7 +117,7 @@ export const useAuthStore = create<AuthState>()(
               password,
             });
             
-            if (error) return { error };
+            if (error) return { error: error as Error };
             
             set({
               isAuthenticated: true,
@@ -121,14 +126,13 @@ export const useAuthStore = create<AuthState>()(
             });
             
             return { error: null };
-          } 
-          else {
+          } else {
             const { data, error } = await supabase.auth.signInWithPassword({
               email: emailOrUsername,
               password,
             });
             
-            if (error) return { error };
+            if (error) return { error: error as Error };
             
             set({
               isAuthenticated: true,
@@ -140,7 +144,7 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (error) {
           console.error('Error during sign in:', error);
-          return { error };
+          return { error: error instanceof Error ? error : new Error(String(error)) };
         }
       },
       
@@ -187,7 +191,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'severino-auth-storage',
-      partialize: (state): PersistedAuthState => ({
+      partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         user: state.user,
         session: state.session

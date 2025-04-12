@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
 import {
   Note, Task, UsefulLink, Idea, ChatMessage, Prompt, ChipInstance, Settings
 } from '../types';
@@ -14,19 +13,18 @@ interface NotesState {
   deleteNote: (id: string) => void;
 }
 
-export const useNotesStore = create<NotesState>()(
+const useNotesStore = create<NotesState>()(
   persist(
     (set) => ({
       notes: [],
       addNote: (title, content) => {
-        const userId = supabase.auth.getUser().then(({ data }) => data?.user?.id || '') || '';
         const newNote: Note = {
           id: uuidv4(),
           title,
           content,
           createdAt: new Date(),
           updatedAt: new Date(),
-          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-user-id'
         };
         set((state) => ({ notes: [newNote, ...state.notes] }));
       },
@@ -56,7 +54,7 @@ interface TasksState {
   deleteTask: (id: string) => void;
 }
 
-export const useTasksStore = create<TasksState>()(
+const useTasksStore = create<TasksState>()(
   persist(
     (set) => ({
       tasks: [],
@@ -68,7 +66,7 @@ export const useTasksStore = create<TasksState>()(
           dueDate,
           status: 'pending',
           createdAt: new Date(),
-          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-user-id'
         };
         set((state) => ({ tasks: [newTask, ...state.tasks] }));
       },
@@ -104,7 +102,7 @@ interface LinksState {
   deleteLink: (id: string) => void;
 }
 
-export const useLinksStore = create<LinksState>()(
+const useLinksStore = create<LinksState>()(
   persist(
     (set) => ({
       links: [],
@@ -116,7 +114,7 @@ export const useLinksStore = create<LinksState>()(
           description,
           category,
           createdAt: new Date(),
-          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-user-id'
         };
         set((state) => ({ links: [newLink, ...state.links] }));
       },
@@ -145,7 +143,7 @@ interface IdeasState {
   deleteIdea: (id: string) => void;
 }
 
-export const useIdeasStore = create<IdeasState>()(
+const useIdeasStore = create<IdeasState>()(
   persist(
     (set) => ({
       ideas: [],
@@ -156,7 +154,7 @@ export const useIdeasStore = create<IdeasState>()(
           description,
           category,
           createdAt: new Date(),
-          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-user-id'
         };
         set((state) => ({ ideas: [newIdea, ...state.ideas] }));
       },
@@ -185,7 +183,7 @@ interface ChatState {
   sendWebhookMessage: (content: string, webhookUrl: string) => Promise<void>;
 }
 
-export const useChatStore = create<ChatState>((set) => ({
+const useChatStore = create<ChatState>((set) => ({
   messages: [],
   addMessage: (sender, content) => {
     const newMessage: ChatMessage = {
@@ -193,7 +191,7 @@ export const useChatStore = create<ChatState>((set) => ({
       sender,
       content,
       timestamp: new Date(),
-      userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+      userId: 'temporary-user-id'
     };
     set((state) => ({ messages: [...state.messages, newMessage] }));
   },
@@ -207,7 +205,7 @@ export const useChatStore = create<ChatState>((set) => ({
         sender: 'user',
         content,
         timestamp: new Date(),
-        userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+        userId: 'temporary-user-id'
       };
       set((state) => ({ messages: [...state.messages, userMessage] }));
 
@@ -217,7 +215,7 @@ export const useChatStore = create<ChatState>((set) => ({
           sender: 'CEO',
           content: `Response to: ${content}`,
           timestamp: new Date(),
-          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-user-id'
         };
         set((state) => ({ messages: [...state.messages, botResponse] }));
       }, 1000);
@@ -236,7 +234,7 @@ interface PromptsState {
   generateWithOpenAI: (prompt: string, apiKey: string) => Promise<string>;
 }
 
-export const usePromptsStore = create<PromptsState>()(
+const usePromptsStore = create<PromptsState>()(
   persist(
     (set) => ({
       prompts: [],
@@ -247,7 +245,7 @@ export const usePromptsStore = create<PromptsState>()(
           content,
           category,
           createdAt: new Date(),
-          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-user-id'
         };
         set((state) => ({ 
           prompts: [newPrompt, ...state.prompts] 
@@ -290,7 +288,7 @@ interface ChipInstancesState {
   heatChip: (id: string, apiKey: string) => Promise<void>;
 }
 
-export const useChipInstancesStore = create<ChipInstancesState>()(
+const useChipInstancesStore = create<ChipInstancesState>()(
   persist(
     (set) => ({
       instances: [],
@@ -301,7 +299,7 @@ export const useChipInstancesStore = create<ChipInstancesState>()(
           phone,
           status: 'inactive',
           createdAt: new Date(),
-          userId: 'temporary-id'  // Will be replaced with actual user ID when using Supabase
+          userId: 'temporary-user-id'
         };
         set((state) => ({ instances: [newInstance, ...state.instances] }));
       },
@@ -345,8 +343,8 @@ export const useChipInstancesStore = create<ChipInstancesState>()(
   )
 );
 
-// Fix the Settings store to match the type definition
-export const useSettingsStore = create<{
+// Settings Store
+const useSettingsStore = create<{
   settings: Settings;
   updateSettings: (updates: Partial<Settings>) => void;
 }>()(
@@ -361,7 +359,7 @@ export const useSettingsStore = create<{
         language: 'pt',
         enableNotifications: false,
         autoSave: true,
-        userId: 'temporary-id'
+        userId: 'temporary-user-id'
       },
       updateSettings: (updates) => {
         set((state) => ({
@@ -384,5 +382,6 @@ export {
   useIdeasStore, 
   useChatStore, 
   usePromptsStore, 
-  useChipInstancesStore 
+  useChipInstancesStore,
+  useSettingsStore
 };

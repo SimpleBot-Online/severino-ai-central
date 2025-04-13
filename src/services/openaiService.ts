@@ -1,3 +1,5 @@
+
+import { API } from '@/config';
 import { useSettingsStore } from '@/store/dataStore';
 
 interface ChatMessage {
@@ -5,66 +7,43 @@ interface ChatMessage {
   content: string;
 }
 
-interface ChatCompletionResponse {
-  id: string;
-  choices: {
-    message: {
-      role: string;
-      content: string;
-    };
-  }[];
-}
-
-// This is a service that connects to the OpenAI API
-// In a production environment, you would typically handle this through a backend
-// to avoid exposing your API key in the frontend
-
-export async function sendChatMessage(messages: ChatMessage[]): Promise<string> {
+export const sendChatMessage = async (messages: ChatMessage[]): Promise<string> => {
   try {
     const settings = useSettingsStore.getState().settings;
-    const apiKey = settings?.openaiApiKey;
-
-    if (!apiKey) {
-      return 'API key not found. Please configure it in settings. Go to Settings page and add your OpenAI API key.';
+    
+    if (!settings?.openaiApiKey) {
+      throw new Error('API Key não configurada');
     }
 
-    // Real implementation using OpenAI API
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: 'Você é um assistente útil e amigável que ajuda com suporte técnico e brainstorming. Seja conciso e direto nas respostas.'
-            },
-            ...messages
-          ],
-          max_tokens: 1000,
-          temperature: 0.7
-        })
-      });
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settings.openaiApiKey}`
+      },
+      body: JSON.stringify({
+        model: API.OPENAI.DEFAULT_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: API.OPENAI.DEFAULT_SYSTEM_MESSAGE
+          },
+          ...messages
+        ],
+        temperature: API.OPENAI.DEFAULT_TEMPERATURE,
+        max_tokens: API.OPENAI.DEFAULT_MAX_TOKENS
+      })
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('OpenAI API error:', errorData);
-        return `Error from OpenAI API: ${errorData.error?.message || 'Unknown error'}. Please check your API key and settings.`;
-      }
-
-      const data: ChatCompletionResponse = await response.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      console.error('Error calling OpenAI API:', error);
-      return `Error connecting to OpenAI API. Please check your internet connection and API key configuration.`;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Erro ao obter resposta');
     }
 
+    const data = await response.json();
+    return data.choices[0].message.content;
   } catch (error) {
-    console.error('Error in OpenAI service:', error);
-    return `An unexpected error occurred. Please try again later.`;
+    console.error('Error sending message:', error);
+    throw error;
   }
-}
+};

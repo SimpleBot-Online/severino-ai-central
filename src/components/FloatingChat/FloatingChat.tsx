@@ -37,21 +37,18 @@ const FloatingChat: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom of messages
   useEffect(() => {
     if (messagesEndRef.current && isOpen) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isOpen]);
 
-  // Focus input when chat is opened
   useEffect(() => {
     if (isOpen && !isMinimized && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen, isMinimized]);
 
-  // Initialize with system message
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([
@@ -78,19 +75,15 @@ const FloatingChat: React.FC = () => {
     setShowHelp(!showHelp);
   };
 
-  // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle shortcuts when chat is open
       if (!isOpen) return;
 
-      // Ctrl+/ to toggle help
       if (e.ctrlKey && e.key === '/') {
         e.preventDefault();
         toggleHelp();
       }
 
-      // Escape to close chat or help
       if (e.key === 'Escape') {
         if (showHelp) {
           setShowHelp(false);
@@ -106,15 +99,14 @@ const FloatingChat: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isMinimized, showHelp]);
 
-  // Process commands
-  const processCommand = useCallback((command: string) => {
+  const processCommand = useCallback((command: string): Message | null => {
     const cmd = command.toLowerCase().trim();
 
     switch(cmd) {
       case '/help':
         return {
           id: `system-${Date.now()}`,
-          role: 'system',
+          role: 'system' as const,
           content: `Comandos disponíveis:
 /help - Mostra esta ajuda
 /clear - Limpa o histórico de mensagens
@@ -140,7 +132,7 @@ Esc - Minimiza ou fecha o chat`,
       case '/status':
         return {
           id: `system-${Date.now()}`,
-          role: 'system',
+          role: 'system' as const,
           content: `Status do sistema:
 Conexão: Ativa
 API: OpenAI v2
@@ -153,7 +145,7 @@ Latência: ~300ms`,
       case '/version':
         return {
           id: `system-${Date.now()}`,
-          role: 'system',
+          role: 'system' as const,
           content: 'Severino IA Central v1.0.2',
           timestamp: new Date(),
           isCommand: true
@@ -163,7 +155,7 @@ Latência: ~300ms`,
         if (cmd.startsWith('/')) {
           return {
             id: `system-${Date.now()}`,
-            role: 'system',
+            role: 'system' as const,
             content: `Comando não reconhecido: ${command}\nDigite /help para ver os comandos disponíveis.`,
             timestamp: new Date(),
             isCommand: true
@@ -181,9 +173,7 @@ Latência: ~300ms`,
     const trimmedInput = input.trim();
     setInput('');
 
-    // Check if it's a command
     if (trimmedInput.startsWith('/')) {
-      // Add user command to messages
       const userCommand: Message = {
         id: Date.now().toString(),
         role: 'user',
@@ -194,7 +184,6 @@ Latência: ~300ms`,
 
       setMessages(prev => [...prev, userCommand]);
 
-      // Process command
       const commandResponse = processCommand(trimmedInput);
       if (commandResponse) {
         setMessages(prev => [...prev, commandResponse]);
@@ -203,8 +192,6 @@ Latência: ~300ms`,
       return;
     }
 
-    // Regular message flow
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -216,7 +203,6 @@ Latência: ~300ms`,
     setIsLoading(true);
 
     try {
-      // Call the OpenAI service
       const chatMessages = [
         ...messages
           .filter(msg => !msg.isCommand && msg.role !== 'system')
@@ -240,7 +226,6 @@ Latência: ~300ms`,
       console.error('Error sending message:', error);
       setIsLoading(false);
 
-      // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'system',
@@ -254,7 +239,6 @@ Latência: ~300ms`,
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      {/* Chat Button */}
       <Button
         onClick={toggleChat}
         className="rounded-none h-14 w-14 shadow-lg bg-black border border-cyan-500 hover:bg-black/80 transition-all duration-300 terminal-effect"
@@ -263,7 +247,6 @@ Latência: ~300ms`,
         <Terminal className="h-6 w-6 text-cyan-500" />
       </Button>
 
-      {/* Chat Window */}
       {isOpen && (
         <div
           ref={chatContainerRef}
@@ -273,7 +256,6 @@ Latência: ~300ms`,
             isMinimized ? "h-10" : "h-[500px]"
           )}
         >
-          {/* Terminal Header */}
           <div className="terminal-header flex flex-row items-center justify-between h-10 px-3">
             <div className="flex items-center">
               <Terminal className="h-4 w-4 mr-2 text-green-500" />
@@ -312,7 +294,6 @@ Latência: ~300ms`,
 
           {!isMinimized && (
             <>
-              {/* Help Overlay */}
               {showHelp && (
                 <div className="absolute inset-0 z-10 bg-black/95 border border-green-500/50 p-4 overflow-auto">
                   <div className="flex justify-between items-center mb-4 border-b border-green-500/30 pb-2">
@@ -361,7 +342,6 @@ Latência: ~300ms`,
                 </div>
               )}
 
-              {/* Messages Area */}
               <div className="overflow-y-auto h-[calc(100%-90px)] p-3 bg-black/80">
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center text-green-500/70">
@@ -414,7 +394,6 @@ Latência: ~300ms`,
                 )}
               </div>
 
-              {/* Input Area */}
               <div className="p-3 border-t border-cyan-500/30 bg-black/90">
                 <form onSubmit={handleSendMessage} className="flex w-full gap-2">
                   <div className="flex-1 relative">

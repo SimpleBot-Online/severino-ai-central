@@ -1,347 +1,310 @@
+import { 
+  Note, Task, UsefulLink, Idea, 
+  Client, ClientStatus, ClientCategory, 
+  FinancialRecord
+} from '@/types';
+import { v4 as uuidv4 } from 'uuid';
 
-import { Settings, Client, FinancialRecord } from '@/types';
-import { DATABASE, AUTH } from '@/config';
-import {
-  useNotesStore,
-  useTasksStore,
-  useLinksStore,
-  useIdeasStore,
-  usePromptsStore,
-  useChipInstancesStore,
-  useSettingsStore,
-  useClientsStore,
-  useFinancialRecordsStore
-} from '@/store/dataStore';
+// Helper function to convert string dates to Date objects
+const toDate = (dateStr: string | Date): Date => {
+  if (dateStr instanceof Date) return dateStr;
+  return new Date(dateStr);
+};
 
-// Funções simplificadas que usam o Zustand em vez do Supabase
-
-// Função para inicializar dados do usuário (não faz nada, apenas retorna sucesso)
-export async function initializeUserData(userId: string) {
-  console.log('Inicializando dados para o usuário:', userId);
-  return { success: true };
-}
-
-// Função para obter perfil do usuário
-export async function getUserProfile(userId: string) {
-  return {
-    id: userId,
-    username: 'admin',
-    full_name: 'Administrador',
-    avatar_url: null,
-    updated_at: new Date().toISOString()
-  };
-}
-
-// Função para atualizar perfil do usuário
-export async function updateUserProfile(userId: string, profileData: any) {
-  console.log('Atualizando perfil para:', userId, profileData);
-  return { success: true };
-}
-
-// Função para obter configurações do usuário
-export async function getUserSettings(userId: string) {
-  const settings = useSettingsStore.getState().settings;
-  return settings;
-}
-
-// Função para atualizar configurações do usuário
-export async function updateUserSettings(userId: string, settingsData: Partial<Settings>) {
-  useSettingsStore.getState().updateSettings(settingsData);
-  return { success: true };
-}
-
-// Operações CRUD para notas
-export async function getNotes(userId: string) {
-  return useNotesStore.getState().notes;
-}
-
-export async function getNote(noteId: string) {
-  const notes = useNotesStore.getState().notes;
-  return notes.find(note => note.id === noteId) || null;
-}
-
-export async function createNote(userId: string, note: { title: string; content: string }) {
-  useNotesStore.getState().addNote(note.title, note.content);
-  return { success: true };
-}
-
-export async function updateNote(noteId: string, note: { title?: string; content?: string }) {
-  if (note.title && note.content) {
-    useNotesStore.getState().updateNote(noteId, note.title, note.content);
+// Notes functions
+export const saveNote = (note: Note): void => {
+  const notes = getNotes();
+  const existingNoteIndex = notes.findIndex(n => n.id === note.id);
+  
+  if (existingNoteIndex >= 0) {
+    notes[existingNoteIndex] = { ...note, updatedAt: new Date() };
+  } else {
+    notes.unshift({
+      ...note,
+      id: note.id || uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
   }
-  return { success: true };
-}
+  
+  localStorage.setItem('severino-notes-storage', JSON.stringify({ state: { notes } }));
+};
 
-export async function deleteNote(noteId: string) {
-  useNotesStore.getState().deleteNote(noteId);
-  return { success: true };
-}
-
-// Operações CRUD para tarefas
-export async function getTasks(userId: string) {
-  return useTasksStore.getState().tasks;
-}
-
-export async function getTask(taskId: string) {
-  const tasks = useTasksStore.getState().tasks;
-  return tasks.find(task => task.id === taskId) || null;
-}
-
-export async function createTask(userId: string, task: { title: string; description?: string; due_date?: string; status?: 'pending' | 'in-progress' | 'completed' }) {
-  useTasksStore.getState().addTask(task.title, task.description, task.due_date);
-  return { success: true };
-}
-
-export async function updateTask(taskId: string, task: { title?: string; description?: string; due_date?: string; status?: 'pending' | 'in-progress' | 'completed' }) {
-  useTasksStore.getState().updateTask(taskId, task);
-  return { success: true };
-}
-
-export async function deleteTask(taskId: string) {
-  useTasksStore.getState().deleteTask(taskId);
-  return { success: true };
-}
-
-// Operações CRUD para links
-export async function getLinks(userId: string) {
-  return useLinksStore.getState().links;
-}
-
-export async function getLink(linkId: string) {
-  const links = useLinksStore.getState().links;
-  return links.find(link => link.id === linkId) || null;
-}
-
-export async function createLink(userId: string, link: { title: string; url: string; description?: string; category?: string }) {
-  useLinksStore.getState().addLink(link.title, link.url, link.description, link.category);
-  return { success: true };
-}
-
-export async function updateLink(linkId: string, link: { title?: string; url?: string; description?: string; category?: string }) {
-  useLinksStore.getState().updateLink(linkId, link);
-  return { success: true };
-}
-
-export async function deleteLink(linkId: string) {
-  useLinksStore.getState().deleteLink(linkId);
-  return { success: true };
-}
-
-// Operações CRUD para ideias
-export async function getIdeas(userId: string) {
-  return useIdeasStore.getState().ideas;
-}
-
-export async function getIdea(ideaId: string) {
-  const ideas = useIdeasStore.getState().ideas;
-  return ideas.find(idea => idea.id === ideaId) || null;
-}
-
-export async function createIdea(userId: string, idea: { title: string; description?: string; category?: string }) {
-  useIdeasStore.getState().addIdea(idea.title, idea.description || '', idea.category || '');
-  return { success: true };
-}
-
-export async function updateIdea(ideaId: string, idea: { title?: string; description?: string; category?: string }) {
-  useIdeasStore.getState().updateIdea(ideaId, idea);
-  return { success: true };
-}
-
-export async function deleteIdea(ideaId: string) {
-  useIdeasStore.getState().deleteIdea(ideaId);
-  return { success: true };
-}
-
-// Operações CRUD para prompts
-export async function getPrompts(userId: string) {
-  return usePromptsStore.getState().prompts;
-}
-
-export async function getPrompt(promptId: string) {
-  const prompts = usePromptsStore.getState().prompts;
-  return prompts.find(prompt => prompt.id === promptId) || null;
-}
-
-export async function createPrompt(userId: string, prompt: { title: string; content: string; category?: string }) {
-  usePromptsStore.getState().addPrompt(prompt.title, prompt.content, prompt.category || '');
-  return { success: true };
-}
-
-export async function updatePrompt(promptId: string, prompt: { title?: string; content?: string; category?: string }) {
-  usePromptsStore.getState().updatePrompt(promptId, prompt);
-  return { success: true };
-}
-
-export async function deletePrompt(promptId: string) {
-  usePromptsStore.getState().deletePrompt(promptId);
-  return { success: true };
-}
-
-// Operações CRUD para chips
-export async function getChips(userId: string) {
-  return useChipInstancesStore.getState().instances;
-}
-
-export async function getChip(chipId: string) {
-  const chips = useChipInstancesStore.getState().instances;
-  return chips.find(chip => chip.id === chipId) || null;
-}
-
-export async function createChip(userId: string, chip: { name: string; phone: string }) {
-  useChipInstancesStore.getState().addInstance(chip.name, chip.phone);
-  return { success: true };
-}
-
-export async function updateChip(chipId: string, chip: { name?: string; phone?: string; status?: 'active' | 'inactive' | 'heating' }) {
-  useChipInstancesStore.getState().updateInstance(chipId, chip);
-  return { success: true };
-}
-
-export async function deleteChip(chipId: string) {
-  useChipInstancesStore.getState().deleteInstance(chipId);
-  return { success: true };
-}
-
-// Operações CRUD para clientes
-export async function getClients(userId: string) {
-  return useClientsStore.getState().clients;
-}
-
-export async function getClient(clientId: string) {
-  const clients = useClientsStore.getState().clients;
-  return clients.find(client => client.id === clientId) || null;
-}
-
-export async function getClientsByStatus(status: string) {
-  return useClientsStore.getState().getClientsByStatus(status as any);
-}
-
-export async function createClient(userId: string, client: { name: string; status: string; category: string; [key: string]: any }) {
-  useClientsStore.getState().addClient(
-    client.name,
-    client.status as any,
-    client.category as any,
-    client
-  );
-  return { success: true };
-}
-
-export async function updateClient(clientId: string, updates: Partial<Client>) {
-  useClientsStore.getState().updateClient(clientId, updates);
-  return { success: true };
-}
-
-export async function deleteClient(clientId: string) {
-  if (!clientId) {
-    console.error('deleteClient service called with invalid ID');
-    return { success: false, error: 'Invalid client ID' };
-  }
-
-  console.log('databaseService.deleteClient called with ID:', clientId);
-
+export const getNotes = (): Note[] => {
   try {
-    // Get clients before deletion
-    const clientsBefore = useClientsStore.getState().clients;
-    const clientToDelete = clientsBefore.find(client => client.id === clientId);
-
-    if (!clientToDelete) {
-      console.error('Client not found with ID:', clientId);
-      return { success: false, error: 'Client not found' };
-    }
-
-    console.log('Client to delete:', clientToDelete);
-
-    // Call the store method
-    useClientsStore.getState().deleteClient(clientId);
-
-    // Get clients after deletion to verify
-    const clientsAfter = useClientsStore.getState().clients;
-    const wasDeleted = clientsBefore.length > clientsAfter.length;
-    console.log('Clients after deletion (service):', clientsAfter);
-    console.log('Client was deleted:', wasDeleted);
-
-    if (!wasDeleted) {
-      console.error('Failed to delete client, store state did not change');
-      return { success: false, error: 'Failed to delete client' };
-    }
-
-    return { success: true };
+    const storedData = localStorage.getItem('severino-notes-storage');
+    if (!storedData) return [];
+    
+    const parsedData = JSON.parse(storedData);
+    const notes = parsedData.state?.notes || [];
+    
+    return notes.map((note: any) => ({
+      ...note,
+      createdAt: toDate(note.createdAt),
+      updatedAt: toDate(note.updatedAt)
+    }));
   } catch (error) {
-    console.error('Error in deleteClient service:', error);
-    return { success: false, error: String(error) };
+    console.error('Error retrieving notes:', error);
+    return [];
   }
-}
+};
 
-// Operações CRUD para registros financeiros
-export async function getFinancialRecords(userId: string) {
-  return useFinancialRecordsStore.getState().records;
-}
+export const deleteNote = (id: string): void => {
+  const notes = getNotes();
+  const filteredNotes = notes.filter(note => note.id !== id);
+  localStorage.setItem('severino-notes-storage', JSON.stringify({ state: { notes: filteredNotes } }));
+};
 
-export async function getFinancialRecord(recordId: string) {
-  const records = useFinancialRecordsStore.getState().records;
-  return records.find(record => record.id === recordId) || null;
-}
-
-export async function getFinancialRecordsByClient(clientId: string) {
-  return useFinancialRecordsStore.getState().getRecordsByClient(clientId);
-}
-
-export async function createFinancialRecord(
-  userId: string,
-  record: {
-    clientId: string;
-    description: string;
-    amount: number;
-    type: 'income' | 'expense';
-    date: Date
+// Tasks functions
+export const saveTask = (task: Task): void => {
+  const tasks = getTasks();
+  const existingTaskIndex = tasks.findIndex(t => t.id === task.id);
+  
+  if (existingTaskIndex >= 0) {
+    tasks[existingTaskIndex] = { ...task };
+  } else {
+    tasks.unshift({
+      ...task,
+      id: task.id || uuidv4(),
+      createdAt: new Date()
+    });
   }
-) {
-  useFinancialRecordsStore.getState().addRecord(
-    record.clientId,
-    record.description,
-    record.amount,
-    record.type,
-    record.date
+  
+  localStorage.setItem('severino-tasks-storage', JSON.stringify({ state: { tasks } }));
+};
+
+export const getTasks = (): Task[] => {
+  try {
+    const storedData = localStorage.getItem('severino-tasks-storage');
+    if (!storedData) return [];
+    
+    const parsedData = JSON.parse(storedData);
+    const tasks = parsedData.state?.tasks || [];
+    
+    return tasks.map((task: any) => ({
+      ...task,
+      createdAt: toDate(task.createdAt),
+      dueDate: toDate(task.dueDate)
+    }));
+  } catch (error) {
+    console.error('Error retrieving tasks:', error);
+    return [];
+  }
+};
+
+export const updateTaskStatus = (id: string, status: Task['status']): void => {
+  const tasks = getTasks();
+  const updatedTasks = tasks.map(task => 
+    task.id === id ? { ...task, status } : task
   );
-  return { success: true };
-}
+  
+  localStorage.setItem('severino-tasks-storage', JSON.stringify({ state: { tasks: updatedTasks } }));
+};
 
-export async function updateFinancialRecord(recordId: string, updates: Partial<FinancialRecord>) {
-  useFinancialRecordsStore.getState().updateRecord(recordId, updates);
-  return { success: true };
-}
+export const deleteTask = (id: string): void => {
+  const tasks = getTasks();
+  const filteredTasks = tasks.filter(task => task.id !== id);
+  localStorage.setItem('severino-tasks-storage', JSON.stringify({ state: { tasks: filteredTasks } }));
+};
 
-export async function deleteFinancialRecord(recordId: string) {
-  useFinancialRecordsStore.getState().deleteRecord(recordId);
-  return { success: true };
-}
+// Links functions
+export const saveLink = (link: UsefulLink): void => {
+  const links = getLinks();
+  const existingLinkIndex = links.findIndex(l => l.id === link.id);
+  
+  if (existingLinkIndex >= 0) {
+    links[existingLinkIndex] = { ...link };
+  } else {
+    links.unshift({
+      ...link,
+      id: link.id || uuidv4(),
+      createdAt: new Date()
+    });
+  }
+  
+  localStorage.setItem('severino-links-storage', JSON.stringify({ state: { links } }));
+};
 
-// Função para verificar e criar estrutura do banco de dados (simulada)
-export async function checkAndCreateDatabaseStructure() {
-  // Verificar se os stores do Zustand estão inicializados
-  const stores = [
-    DATABASE.STORAGE_KEYS.NOTES,
-    DATABASE.STORAGE_KEYS.TASKS,
-    DATABASE.STORAGE_KEYS.LINKS,
-    DATABASE.STORAGE_KEYS.IDEAS,
-    DATABASE.STORAGE_KEYS.PROMPTS,
-    DATABASE.STORAGE_KEYS.CHIP_INSTANCES,
-    DATABASE.STORAGE_KEYS.SETTINGS,
-    DATABASE.STORAGE_KEYS.AUTH,
-    DATABASE.STORAGE_KEYS.CLIENTS,
-    DATABASE.STORAGE_KEYS.FINANCIAL_RECORDS
-  ];
+export const getLinks = (): UsefulLink[] => {
+  try {
+    const storedData = localStorage.getItem('severino-links-storage');
+    if (!storedData) return [];
+    
+    const parsedData = JSON.parse(storedData);
+    const links = parsedData.state?.links || [];
+    
+    return links.map((link: any) => ({
+      ...link,
+      createdAt: toDate(link.createdAt)
+    }));
+  } catch (error) {
+    console.error('Error retrieving links:', error);
+    return [];
+  }
+};
 
-  // Verificar se cada store existe no localStorage
-  stores.forEach(storeName => {
-    if (!localStorage.getItem(storeName)) {
-      // Inicializar o store vazio para garantir que ele exista
-      localStorage.setItem(storeName, JSON.stringify({ state: {} }));
-    }
-  });
+export const deleteLink = (id: string): void => {
+  const links = getLinks();
+  const filteredLinks = links.filter(link => link.id !== id);
+  localStorage.setItem('severino-links-storage', JSON.stringify({ state: { links: filteredLinks } }));
+};
 
-  // Simular um pequeno atraso para dar tempo de carregar
-  await new Promise(resolve => setTimeout(resolve, 300));
+// Ideas functions
+export const saveIdea = (idea: Idea): void => {
+  const ideas = getIdeas();
+  const existingIdeaIndex = ideas.findIndex(i => i.id === idea.id);
+  
+  if (existingIdeaIndex >= 0) {
+    ideas[existingIdeaIndex] = { ...idea };
+  } else {
+    ideas.unshift({
+      ...idea,
+      id: idea.id || uuidv4(),
+      createdAt: new Date()
+    });
+  }
+  
+  localStorage.setItem('severino-ideas-storage', JSON.stringify({ state: { ideas } }));
+};
 
-  return true;
-}
+export const getIdeas = (): Idea[] => {
+  try {
+    const storedData = localStorage.getItem('severino-ideas-storage');
+    if (!storedData) return [];
+    
+    const parsedData = JSON.parse(storedData);
+    const ideas = parsedData.state?.ideas || [];
+    
+    return ideas.map((idea: any) => ({
+      ...idea,
+      createdAt: toDate(idea.createdAt)
+    }));
+  } catch (error) {
+    console.error('Error retrieving ideas:', error);
+    return [];
+  }
+};
+
+export const deleteIdea = (id: string): void => {
+  const ideas = getIdeas();
+  const filteredIdeas = ideas.filter(idea => idea.id !== id);
+  localStorage.setItem('severino-ideas-storage', JSON.stringify({ state: { ideas: filteredIdeas } }));
+};
+
+// Clients functions
+export const saveClient = (client: Partial<Client> & { name: string; status: ClientStatus; category: ClientCategory }): void => {
+  const clients = getClients();
+  const existingClientIndex = clients.findIndex(c => c.id === client.id);
+  
+  if (existingClientIndex >= 0) {
+    clients[existingClientIndex] = { 
+      ...clients[existingClientIndex],
+      ...client,
+      updatedAt: new Date()
+    };
+  } else {
+    clients.unshift({
+      ...client,
+      id: client.id || uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userId: client.userId || 'admin'
+    } as Client);
+  }
+  
+  localStorage.setItem('severino-clients-storage', JSON.stringify({ state: { clients } }));
+};
+
+export const getClients = (): Client[] => {
+  try {
+    const storedData = localStorage.getItem('severino-clients-storage');
+    if (!storedData) return [];
+    
+    const parsedData = JSON.parse(storedData);
+    const clients = parsedData.state?.clients || [];
+    
+    return clients.map((client: any) => ({
+      ...client,
+      createdAt: toDate(client.createdAt),
+      updatedAt: toDate(client.updatedAt),
+      nextContactDate: client.nextContactDate ? toDate(client.nextContactDate) : undefined,
+      lastContactDate: client.lastContactDate ? toDate(client.lastContactDate) : undefined
+    }));
+  } catch (error) {
+    console.error('Error retrieving clients:', error);
+    return [];
+  }
+};
+
+export const deleteClient = (id: string): void => {
+  if (!id) {
+    console.error('deleteClient called with invalid id');
+    return;
+  }
+  
+  const clients = getClients();
+  const clientToDelete = clients.find(client => client.id === id);
+  
+  if (!clientToDelete) {
+    console.error('Client not found with id:', id);
+    return;
+  }
+  
+  const filteredClients = clients.filter(client => client.id !== id);
+  localStorage.setItem('severino-clients-storage', JSON.stringify({ state: { clients: filteredClients } }));
+  
+  console.log('Deletion successful:', clients.length > filteredClients.length);
+};
+
+// Financial records functions
+export const saveFinancialRecord = (record: FinancialRecord): void => {
+  const records = getFinancialRecords();
+  const existingRecordIndex = records.findIndex(r => r.id === record.id);
+  
+  if (existingRecordIndex >= 0) {
+    records[existingRecordIndex] = { 
+      ...record,
+      updatedAt: new Date()
+    };
+  } else {
+    records.unshift({
+      ...record,
+      id: record.id || uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  }
+  
+  localStorage.setItem('severino-financial-records-storage', JSON.stringify({ state: { records } }));
+};
+
+export const getFinancialRecords = (): FinancialRecord[] => {
+  try {
+    const storedData = localStorage.getItem('severino-financial-records-storage');
+    if (!storedData) return [];
+    
+    const parsedData = JSON.parse(storedData);
+    const records = parsedData.state?.records || [];
+    
+    return records.map((record: any) => ({
+      ...record,
+      createdAt: toDate(record.createdAt),
+      updatedAt: toDate(record.updatedAt),
+      date: toDate(record.date)
+    }));
+  } catch (error) {
+    console.error('Error retrieving financial records:', error);
+    return [];
+  }
+};
+
+export const getFinancialRecordsByClient = (clientId: string): FinancialRecord[] => {
+  const records = getFinancialRecords();
+  return records.filter(record => record.clientId === clientId);
+};
+
+export const deleteFinancialRecord = (id: string): void => {
+  const records = getFinancialRecords();
+  const filteredRecords = records.filter(record => record.id !== id);
+  localStorage.setItem('severino-financial-records-storage', JSON.stringify({ state: { records: filteredRecords } }));
+};

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, FileText, CheckSquare, Link as LinkIcon, Lightbulb, MessageSquare, Terminal, Cpu, Settings, ChevronLeft, Book, Bot, Globe } from 'lucide-react';
+import { Home, FileText, CheckSquare, Link as LinkIcon, Lightbulb, MessageSquare, Terminal, Cpu, Settings, ChevronLeft, Book, Bot, Globe, Users } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
     { name: 'Assistentes', path: '/assistants', icon: <Bot size={20} /> },
     { name: 'Aquecimento de Chips', path: '/farm', icon: <Cpu size={20} /> },
     { name: 'O Melhor Robô', path: '/melhor-robo', icon: <Globe size={20} /> },
+    { name: 'SimpleBot', path: '/simplebot', icon: <Bot size={20} /> },
+    { name: 'Quadro de Clientes', path: '/clients', icon: <Users size={20} /> },
     { name: 'Configurações', path: '/settings', icon: <Settings size={20} /> },
   ];
 
@@ -42,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
           />
           {!collapsed && (
             <span className="text-lg font-semibold text-foreground">
-              Gerência
+              Severino+OMR
             </span>
           )}
         </div>

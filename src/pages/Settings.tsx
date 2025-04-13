@@ -6,14 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Settings as SettingsIcon, 
-  Save, 
-  Key, 
-  Webhook, 
-  Globe, 
-  User, 
-  Eye, 
+import {
+  Settings as SettingsIcon,
+  Save,
+  Key,
+  Webhook,
+  Globe,
+  User,
+  Eye,
   EyeOff,
   Sun,
   Moon,
@@ -43,6 +43,7 @@ const Settings = () => {
     webhookUrl: settings.webhookUrl || 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
     evolutionApiKey: settings.evolutionApiKey || '',
     webhookEvolutionUrl: settings.webhookEvolutionUrl || '',
+
     theme: settings.theme || 'dark',
     language: settings.language || 'pt',
     enableNotifications: settings.enableNotifications || false,
@@ -79,11 +80,11 @@ const Settings = () => {
 
   const handleSave = async () => {
     setIsSaving(true);
-    
+
     try {
       // Save to store first (local state)
       updateSettings(formState);
-      
+
       // Save to database if user is authenticated
       if (user?.id) {
         await updateUserSettings(user.id, {
@@ -91,7 +92,7 @@ const Settings = () => {
           user_id: user.id
         });
       }
-      
+
       toast({
         title: "Configurações salvas",
         description: "Suas configurações foram atualizadas com sucesso.",
@@ -146,9 +147,9 @@ const Settings = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <Button 
-              onClick={handleSave} 
-              className="bg-severino-pink hover:bg-severino-pink/90"
+            <Button
+              onClick={handleSave}
+              className="bg-green-500 hover:bg-green-600 text-black"
               disabled={isSaving}
             >
               {isSaving ? (
@@ -170,17 +171,17 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="api" className="space-y-6">
-          <TabsList className="bg-card border-border">
-            <TabsTrigger value="api" className="data-[state=active]:bg-severino-pink">
+          <TabsList className="bg-cyber-dark/80 border-green-500/30">
+            <TabsTrigger value="api" className="data-[state=active]:bg-green-500 data-[state=active]:text-black">
               Chaves de API
             </TabsTrigger>
-            <TabsTrigger value="integrations" className="data-[state=active]:bg-severino-pink">
+            <TabsTrigger value="integrations" className="data-[state=active]:bg-green-500 data-[state=active]:text-black">
               Integrações
             </TabsTrigger>
-            <TabsTrigger value="general" className="data-[state=active]:bg-severino-pink">
+            <TabsTrigger value="general" className="data-[state=active]:bg-green-500 data-[state=active]:text-black">
               Geral
             </TabsTrigger>
-            <TabsTrigger value="advanced" className="data-[state=active]:bg-severino-pink">
+            <TabsTrigger value="advanced" className="data-[state=active]:bg-green-500 data-[state=active]:text-black">
               Avançado
             </TabsTrigger>
           </TabsList>
@@ -188,10 +189,10 @@ const Settings = () => {
           {/* API Keys Tab */}
           <TabsContent value="api">
             <div className="grid grid-cols-1 gap-6">
-              <Card className="bg-card border-border">
+              <Card className="bg-cyber-dark/80 border-green-500/30">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Key size={18} className="mr-2 text-severino-pink" />
+                    <Key size={18} className="mr-2 text-green-500" />
                     API Keys
                   </CardTitle>
                   <CardDescription>
@@ -209,7 +210,7 @@ const Settings = () => {
                           placeholder="sk-..."
                           value={formState.openaiApiKey}
                           onChange={(e) => handleChange('openaiApiKey', e.target.value)}
-                          className="pr-10"
+                          className="pr-10 bg-black/70 border-green-500/30 text-green-300"
                         />
                         <button
                           type="button"
@@ -235,7 +236,7 @@ const Settings = () => {
                           placeholder="sua-chave-evolution-api"
                           value={formState.evolutionApiKey}
                           onChange={(e) => handleChange('evolutionApiKey', e.target.value)}
-                          className="pr-10"
+                          className="pr-10 bg-black/70 border-green-500/30 text-green-300"
                         />
                         <button
                           type="button"
@@ -258,10 +259,10 @@ const Settings = () => {
           {/* Integrations Tab */}
           <TabsContent value="integrations">
             <div className="grid grid-cols-1 gap-6">
-              <Card className="bg-card border-border">
+              <Card className="bg-cyber-dark/80 border-green-500/30">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Webhook size={18} className="mr-2 text-severino-pink" />
+                    <Webhook size={18} className="mr-2 text-green-500" />
                     Webhooks
                   </CardTitle>
                   <CardDescription>
@@ -276,12 +277,13 @@ const Settings = () => {
                       placeholder="https://seu-webhook-url.com"
                       value={formState.webhookUrl}
                       onChange={(e) => handleChange('webhookUrl', e.target.value)}
+                      className="bg-black/70 border-green-500/30 text-green-300"
                     />
                     <p className="text-xs text-muted-foreground">
                       URL do webhook para o Chat CEO. Configuração necessária para envio de mensagens.
                     </p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="webhook_evolution_url">URL do Webhook (Evolution API)</Label>
                     <Input
@@ -289,18 +291,21 @@ const Settings = () => {
                       placeholder="https://sua-url-evolution-api.com/webhook/instance"
                       value={formState.webhookEvolutionUrl}
                       onChange={(e) => handleChange('webhookEvolutionUrl', e.target.value)}
+                      className="bg-black/70 border-green-500/30 text-green-300"
                     />
                     <p className="text-xs text-muted-foreground">
                       URL do webhook para a Evolution API. Configuração necessária para integração.
                     </p>
                   </div>
+
+
                 </CardContent>
               </Card>
-              
-              <Card className="bg-card border-border">
+
+              <Card className="bg-cyber-dark/80 border-green-500/30">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Cpu size={18} className="mr-2 text-severino-pink" />
+                    <Cpu size={18} className="mr-2 text-green-500" />
                     Evolution API
                   </CardTitle>
                   <CardDescription>
@@ -309,35 +314,35 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="bg-severino-lightgray p-4 rounded-md">
+                    <div className="bg-cyber-dark/80 border border-green-500/30 p-4 rounded-md">
                       <h3 className="font-medium mb-2">Eventos de Webhook Disponíveis</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                        <div className="text-xs p-2 bg-black/70 border border-green-500/20 rounded-md">
                           <span className="font-bold">QRCODE_UPDATED</span>: QR Code atualizado
                         </div>
-                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                        <div className="text-xs p-2 bg-black/70 border border-green-500/20 rounded-md">
                           <span className="font-bold">MESSAGES_UPSERT</span>: Mensagens inseridas/atualizadas
                         </div>
-                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                        <div className="text-xs p-2 bg-black/70 border border-green-500/20 rounded-md">
                           <span className="font-bold">MESSAGES_UPDATE</span>: Estado da mensagem alterado
                         </div>
-                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                        <div className="text-xs p-2 bg-black/70 border border-green-500/20 rounded-md">
                           <span className="font-bold">MESSAGES_DELETE</span>: Mensagem deletada
                         </div>
-                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                        <div className="text-xs p-2 bg-black/70 border border-green-500/20 rounded-md">
                           <span className="font-bold">SEND_MESSAGE</span>: Mensagem enviada
                         </div>
-                        <div className="text-xs p-2 bg-severino-gray rounded-md">
+                        <div className="text-xs p-2 bg-black/70 border border-green-500/20 rounded-md">
                           <span className="font-bold">CONNECTION_UPDATE</span>: Conexão atualizada
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label>Formato do Webhook por Eventos</Label>
-                      <div className="p-3 bg-severino-lightgray rounded-md font-mono text-xs overflow-x-auto">
-                        {formState.webhookEvolutionUrl ? 
-                          `${formState.webhookEvolutionUrl}/MESSAGES_UPDATE` : 
+                      <div className="p-3 bg-black/70 border border-green-500/30 rounded-md font-mono text-xs overflow-x-auto">
+                        {formState.webhookEvolutionUrl ?
+                          `${formState.webhookEvolutionUrl}/MESSAGES_UPDATE` :
                           'https://sua-url.com/webhook/MESSAGES_UPDATE'}
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -353,10 +358,10 @@ const Settings = () => {
           {/* General Tab */}
           <TabsContent value="general">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-card border-border">
+              <Card className="bg-cyber-dark/80 border-green-500/30">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Globe size={18} className="mr-2 text-severino-pink" />
+                    <Globe size={18} className="mr-2 text-green-500" />
                     Preferências de Idioma
                   </CardTitle>
                 </CardHeader>
@@ -370,7 +375,7 @@ const Settings = () => {
                         value="pt"
                         checked={formState.language === 'pt'}
                         onChange={() => handleChange('language', 'pt')}
-                        className="h-4 w-4 accent-severino-pink"
+                        className="h-4 w-4 accent-green-500"
                       />
                       <Label htmlFor="lang-pt">Português</Label>
                     </div>
@@ -382,7 +387,7 @@ const Settings = () => {
                         value="en"
                         checked={formState.language === 'en'}
                         onChange={() => handleChange('language', 'en')}
-                        className="h-4 w-4 accent-severino-pink"
+                        className="h-4 w-4 accent-green-500"
                       />
                       <Label htmlFor="lang-en">English</Label>
                     </div>
@@ -390,10 +395,10 @@ const Settings = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border">
+              <Card className="bg-cyber-dark/80 border-green-500/30">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <User size={18} className="mr-2 text-severino-pink" />
+                    <User size={18} className="mr-2 text-green-500" />
                     Modo de Exibição
                   </CardTitle>
                 </CardHeader>
@@ -401,9 +406,9 @@ const Settings = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {theme === 'dark' ? (
-                        <Moon size={20} className="text-severino-pink" />
+                        <Moon size={20} className="text-green-500" />
                       ) : (
-                        <Sun size={20} className="text-severino-pink" />
+                        <Sun size={20} className="text-green-500" />
                       )}
                       <span>{theme === 'dark' ? 'Modo Escuro' : 'Modo Claro'}</span>
                     </div>
@@ -416,14 +421,14 @@ const Settings = () => {
               </Card>
             </div>
           </TabsContent>
-          
+
           {/* Advanced Tab */}
           <TabsContent value="advanced">
             <div className="grid grid-cols-1 gap-6">
-              <Card className="bg-card border-border">
+              <Card className="bg-cyber-dark/80 border-green-500/30">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <SettingsIcon size={18} className="mr-2 text-severino-pink" />
+                    <SettingsIcon size={18} className="mr-2 text-green-500" />
                     Configurações Avançadas
                   </CardTitle>
                   <CardDescription>
@@ -446,7 +451,7 @@ const Settings = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>

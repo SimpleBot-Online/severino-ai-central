@@ -257,10 +257,10 @@ Latência: ~300ms`,
       {/* Chat Button */}
       <Button
         onClick={toggleChat}
-        className="rounded-none h-14 w-14 shadow-lg bg-black border border-green-500 hover:bg-black/80 transition-all duration-300 terminal-effect"
+        className="rounded-none h-14 w-14 shadow-lg bg-black border border-cyan-500 hover:bg-black/80 transition-all duration-300 terminal-effect"
         aria-label="Chat com IA"
       >
-        <Terminal className="h-6 w-6 text-green-500" />
+        <Terminal className="h-6 w-6 text-cyan-500" />
       </Button>
 
       {/* Chat Window */}
@@ -269,7 +269,7 @@ Latência: ~300ms`,
           ref={chatContainerRef}
           className={cn(
             "absolute bottom-16 right-0 w-80 md:w-96 shadow-xl transition-all duration-300 ease-in-out",
-            "bg-black border border-green-500/50 terminal-effect",
+            "bg-black border border-cyan-500/50 terminal-effect",
             isMinimized ? "h-10" : "h-[500px]"
           )}
         >
@@ -404,8 +404,8 @@ Latência: ~300ms`,
                       </div>
                     ))}
                     {isLoading && (
-                      <div className="text-green-400 font-mono text-xs flex items-center">
-                        <Loader2 className="h-3 w-3 animate-spin mr-2 text-green-500" />
+                      <div className="text-cyan-400 font-mono text-xs flex items-center">
+                        <Loader2 className="h-3 w-3 animate-spin mr-2 text-cyan-500" />
                         <span>Processando...</span>
                       </div>
                     )}
@@ -415,24 +415,24 @@ Latência: ~300ms`,
               </div>
 
               {/* Input Area */}
-              <div className="p-3 border-t border-green-500/30 bg-black/90">
+              <div className="p-3 border-t border-cyan-500/30 bg-black/90">
                 <form onSubmit={handleSendMessage} className="flex w-full gap-2">
                   <div className="flex-1 relative">
-                    <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-500 text-xs">$</span>
+                    <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-cyan-500 text-xs">$</span>
                     <Input
                       ref={inputRef}
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Digite um comando ou mensagem..."
-                      className="pl-6 bg-black border-green-500/50 text-green-400 font-mono text-xs focus:border-green-500 focus:ring-0 focus:ring-offset-0"
+                      className="pl-6 bg-black border-cyan-500/50 text-cyan-400 font-mono text-xs focus:border-cyan-500 focus:ring-0 focus:ring-offset-0"
                       disabled={isLoading}
                     />
                   </div>
                   <Button
                     type="submit"
                     size="sm"
+                    variant="terminal"
                     disabled={isLoading || !input.trim()}
-                    className="bg-green-500/20 border border-green-500/50 text-green-500 hover:bg-green-500/30 hover:text-green-400"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

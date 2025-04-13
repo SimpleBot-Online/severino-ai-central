@@ -1,6 +1,16 @@
 
-import { Settings } from '@/types';
-import { useNotesStore, useTasksStore, useLinksStore, useIdeasStore, usePromptsStore, useChipInstancesStore, useSettingsStore } from '@/store/dataStore';
+import { Settings, Client, FinancialRecord } from '@/types';
+import {
+  useNotesStore,
+  useTasksStore,
+  useLinksStore,
+  useIdeasStore,
+  usePromptsStore,
+  useChipInstancesStore,
+  useSettingsStore,
+  useClientsStore,
+  useFinancialRecordsStore
+} from '@/store/dataStore';
 
 // Funções simplificadas que usam o Zustand em vez do Supabase
 
@@ -191,6 +201,120 @@ export async function deleteChip(chipId: string) {
   return { success: true };
 }
 
+// Operações CRUD para clientes
+export async function getClients(userId: string) {
+  return useClientsStore.getState().clients;
+}
+
+export async function getClient(clientId: string) {
+  const clients = useClientsStore.getState().clients;
+  return clients.find(client => client.id === clientId) || null;
+}
+
+export async function getClientsByStatus(status: string) {
+  return useClientsStore.getState().getClientsByStatus(status as any);
+}
+
+export async function createClient(userId: string, client: { name: string; status: string; category: string; [key: string]: any }) {
+  useClientsStore.getState().addClient(
+    client.name,
+    client.status as any,
+    client.category as any,
+    client
+  );
+  return { success: true };
+}
+
+export async function updateClient(clientId: string, updates: Partial<Client>) {
+  useClientsStore.getState().updateClient(clientId, updates);
+  return { success: true };
+}
+
+export async function deleteClient(clientId: string) {
+  if (!clientId) {
+    console.error('deleteClient service called with invalid ID');
+    return { success: false, error: 'Invalid client ID' };
+  }
+
+  console.log('databaseService.deleteClient called with ID:', clientId);
+
+  try {
+    // Get clients before deletion
+    const clientsBefore = useClientsStore.getState().clients;
+    const clientToDelete = clientsBefore.find(client => client.id === clientId);
+
+    if (!clientToDelete) {
+      console.error('Client not found with ID:', clientId);
+      return { success: false, error: 'Client not found' };
+    }
+
+    console.log('Client to delete:', clientToDelete);
+
+    // Call the store method
+    useClientsStore.getState().deleteClient(clientId);
+
+    // Get clients after deletion to verify
+    const clientsAfter = useClientsStore.getState().clients;
+    const wasDeleted = clientsBefore.length > clientsAfter.length;
+    console.log('Clients after deletion (service):', clientsAfter);
+    console.log('Client was deleted:', wasDeleted);
+
+    if (!wasDeleted) {
+      console.error('Failed to delete client, store state did not change');
+      return { success: false, error: 'Failed to delete client' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in deleteClient service:', error);
+    return { success: false, error: String(error) };
+  }
+}
+
+// Operações CRUD para registros financeiros
+export async function getFinancialRecords(userId: string) {
+  return useFinancialRecordsStore.getState().records;
+}
+
+export async function getFinancialRecord(recordId: string) {
+  const records = useFinancialRecordsStore.getState().records;
+  return records.find(record => record.id === recordId) || null;
+}
+
+export async function getFinancialRecordsByClient(clientId: string) {
+  return useFinancialRecordsStore.getState().getRecordsByClient(clientId);
+}
+
+export async function createFinancialRecord(
+  userId: string,
+  record: {
+    clientId: string;
+    description: string;
+    amount: number;
+    type: 'income' | 'expense';
+    date: Date
+  }
+) {
+  useFinancialRecordsStore.getState().addRecord(
+    record.clientId,
+    record.description,
+    record.amount,
+    record.type,
+    record.date
+  );
+  return { success: true };
+}
+
+export async function updateFinancialRecord(recordId: string, updates: Partial<FinancialRecord>) {
+  useFinancialRecordsStore.getState().updateRecord(recordId, updates);
+  return { success: true };
+}
+
+export async function deleteFinancialRecord(recordId: string) {
+  useFinancialRecordsStore.getState().deleteRecord(recordId);
+  return { success: true };
+}
+
 // Função para verificar e criar estrutura do banco de dados (simulada)
 export async function checkAndCreateDatabaseStructure() {
   // Verificar se os stores do Zustand estão inicializados
@@ -202,7 +326,9 @@ export async function checkAndCreateDatabaseStructure() {
     'severino-prompts-storage',
     'severino-chip-instances-storage',
     'severino-settings-storage',
-    'severino-auth-storage'
+    'severino-auth-storage',
+    'severino-clients-storage',
+    'severino-financial-records-storage'
   ];
 
   // Verificar se cada store existe no localStorage

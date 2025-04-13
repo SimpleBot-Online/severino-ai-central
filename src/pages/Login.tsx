@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Lock, AlertCircle } from 'lucide-react';
+import { Loader2, Terminal, ShieldCheck } from 'lucide-react';
 
 const Login = () => {
   const [password, setPassword] = useState('');
@@ -61,7 +61,7 @@ const Login = () => {
           navigate('/dashboard');
         }, 100);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro durante o login:', error);
       toast({
         title: "Erro no login",
@@ -87,28 +87,26 @@ const Login = () => {
       <div className="cyberpunk-scanline"></div>
 
       <div className="w-full max-w-md rounded-sm overflow-hidden relative z-10 cyberpunk-box animate-fadeIn">
-        <div className="bg-gradient-to-r from-cyber-primary/20 to-cyber-secondary/20 py-6 px-8 flex flex-col items-center">
+        <div className="bg-gradient-to-r from-cyber-primary/20 to-cyber-primary/10 py-6 px-8 flex flex-col items-center">
           <div className="relative">
-            <img
-              src="/lovable-uploads/d2dd70fc-d37b-4b1b-97c7-bc6049f571b9.png"
-              alt="Severino"
-              className="w-32 h-32 border-2 border-cyber-primary shadow-cyber mb-4 bg-cyber-dark/50 p-1"
-            />
-            <div className="absolute inset-0 border-2 border-cyber-primary/30 animate-pulse"></div>
+            <div className="w-32 h-32 flex items-center justify-center border-2 border-cyber-primary shadow-terminal mb-4 bg-cyber-dark/50 p-1 rounded-full">
+              <Terminal className="h-16 w-16 text-cyber-primary" />
+            </div>
+            <div className="absolute inset-0 border-2 border-cyber-primary/30 animate-pulse rounded-full"></div>
           </div>
-          <h1 className="text-2xl font-cyber text-cyber-primary text-center cyberpunk-glow">SEVERINO IA CENTRAL</h1>
-          <p className="text-foreground/80 text-center mt-2 font-mono">Seu assistente de automação avançada</p>
-          <div className="terminal-text text-xs mt-2">// VERSÃO 1.0.2_ALPHA</div>
+          <h1 className="text-2xl font-cyber text-cyber-primary text-center cyberpunk-glow">ACESSO RESTRITO</h1>
+          <p className="text-foreground/80 text-center mt-2 font-mono">"e o cara vai endoidar, é?"</p>
+          <div className="text-xs mt-2 text-cyber-primary/70 font-mono">// VERSÃO 1.0</div>
         </div>
 
         <div className="p-8 cyberpunk-terminal">
           <div className="terminal-header">
-            <span className="typing-text">login.sh</span>
+            <span className="typing-text"></span>
           </div>
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-mono text-foreground/80 block terminal-prompt">
-                SENHA MESTRA
+              <label htmlFor="password" className="text-sm font-mono text-cyan-400/80 block terminal-prompt">
+                password
               </label>
               <div className="relative">
                 <Input
@@ -118,32 +116,33 @@ const Login = () => {
                   onChange={e => setPassword(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="••••••••"
-                  className="severino-input pl-10"
+                  className="terminal-input pl-10"
                   required
                   autoFocus
                 />
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyber-primary/70" />
+                <ShieldCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-500/70" />
               </div>
             </div>
 
             <Button
               type="submit"
               disabled={loading}
-              className="severino-button w-full"
+              variant="terminal"
+              className="w-full"
             >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  CONECTANDO...
+                  VAI DÁ BRASIL...
                 </>
-              ) : 'ACESSAR SISTEMA'}
+              ) : 'ENTRAR'}
             </Button>
           </form>
         </div>
 
-        <div className="px-8 py-4 border-t border-cyber-primary/30 bg-gradient-to-r from-cyber-primary/5 to-cyber-secondary/5">
+        <div className="px-8 py-4 border-t border-cyber-primary/30 bg-gradient-to-r from-cyber-primary/5 to-cyber-primary/10">
           <p className="text-center text-xs font-mono text-foreground/60">
-            <span className="text-cyber-primary">$</span> Severino IA Central v1.0.2 <span className="text-cyber-secondary">|</span> Todos os direitos reservados <span className="text-cyber-secondary">|</span> 2025
+            <span className="text-cyber-primary">$</span> Severino IA Central v1.0.2 <span className="text-cyan-500">|</span> Todos os direitos reservados <span className="text-cyan-500">|</span> 2025
           </p>
         </div>
       </div>

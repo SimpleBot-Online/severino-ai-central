@@ -101,7 +101,7 @@ export default function Chatbot() {
     addMessage,
     setTabInitialized,
   } = useChatStore();
-  
+
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -194,62 +194,90 @@ export default function Chatbot() {
       sendingRef.current = true;
       lastTimestampRef.current = now;
       setIsTyping(true);
-      
-      const payload = JSON.stringify({ mensagem: message });
-      const response = await fetch(
-        "https://gen.simplebot.online/webhook/b8f10f59-0108-43f1-afce-e782eda6ebe0",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
-      );
 
-      const text = await response.text();
-      interface ApiResponse {
-        output?: string;
-        mensagem?: string;
-        message?: string;
-        resposta?: string;
-        response?: string;
+      // Check if we have a cached response for this message
+      const cachedResponse = sessionStorage.getItem(`chat_response_${message.trim()}`);
+      if (cachedResponse) {
+        console.log('Using cached response');
+        await new Promise(resolve => setTimeout(resolve, 800)); // Small delay to make it feel natural
+        setIsTyping(false);
+        appendMessage(cachedResponse, false);
+        return;
       }
-      let responseData: ApiResponse | string = text;
+
+      const payload = JSON.stringify({ mensagem: message });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
       try {
-        responseData = JSON.parse(text) as ApiResponse;
-      } catch (e) {
-        console.warn('Failed to parse response as JSON:', e);
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          `Erro ${response.status}: ${
-            typeof responseData === "string"
-              ? responseData
-              : JSON.stringify(responseData)
-          }`
+        const response = await fetch(
+          "https://gen.simplebot.online/webhook/b8f10f59-0108-43f1-afce-e782eda6ebe0",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: payload,
+            signal: controller.signal
+          }
         );
+
+        clearTimeout(timeoutId);
+
+        const text = await response.text();
+        interface ApiResponse {
+          output?: string;
+          mensagem?: string;
+          message?: string;
+          resposta?: string;
+          response?: string;
+        }
+        let responseData: ApiResponse | string = text;
+
+        try {
+          responseData = JSON.parse(text) as ApiResponse;
+        } catch (e) {
+          console.warn('Failed to parse response as JSON:', e);
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            `Erro ${response.status}: ${
+              typeof responseData === "string"
+                ? responseData
+                : JSON.stringify(responseData)
+            }`
+          );
+        }
+
+        const botResponse = typeof responseData === 'string'
+          ? responseData
+          : responseData.output ||
+            responseData.mensagem ||
+            responseData.message ||
+            responseData.resposta ||
+            responseData.response;
+
+        // Cache the response for future use
+        if (botResponse) {
+          sessionStorage.setItem(`chat_response_${message.trim()}`, botResponse);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setIsTyping(false);
+
+        if (botResponse) {
+          appendMessage(botResponse, false);
+        } else {
+          appendMessage("Desculpe, não consegui processar sua mensagem.", false);
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          throw new Error('A solicitação demorou muito tempo. Por favor, tente novamente.');
+        }
+        throw fetchError;
       }
-
-      const botResponse = typeof responseData === 'string' 
-        ? responseData
-        : responseData.output ||
-          responseData.mensagem ||
-          responseData.message ||
-          responseData.resposta ||
-          responseData.response;
-
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setIsTyping(false);
-      
-      if (botResponse) {
-        appendMessage(botResponse, false);
-      } else {
-        appendMessage("Desculpe, não consegui processar sua mensagem.", false);
-      }
-
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
       setIsTyping(false);
@@ -264,7 +292,7 @@ export default function Chatbot() {
       );
     } finally {
       sendingRef.current = false;
-      
+
       // Process next message in queue if any
       if (messageQueueRef.current.length > 0) {
         const nextMessage = messageQueueRef.current.shift();
@@ -278,7 +306,7 @@ export default function Chatbot() {
   const handleSend = useCallback(async () => {
     const trimmed = newMessage.trim();
     if (!trimmed || isTyping) return;
-    
+
     appendMessage(trimmed, true);
     setNewMessage("");
     await sendMessage(trimmed);
@@ -295,21 +323,21 @@ export default function Chatbot() {
 
   return (
     <AppLayout>
-      <div className="relative flex flex-col flex-1 h-[calc(100vh-5rem)] p-4 overflow-hidden bg-severino-dark">
+      <div className="relative flex flex-col flex-1 h-[calc(100vh-5rem)] p-4 overflow-hidden bg-cyber-dark">
         {/* Animated cyberpunk background */}
         <div className="fixed inset-0 z-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-severino-dark to-cyan-900/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-cyber-dark/80 via-cyber-dark to-cyber-dark/80" />
           <div className="cyberpunk-grid" />
-          <div className="cyberpunk-glow absolute top-1/4 left-1/4 w-96 h-96 bg-severino-pink/20 blur-3xl rounded-full transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+          <div className="cyberpunk-glow absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 blur-3xl rounded-full transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
           <div className="cyberpunk-glow absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/20 blur-3xl rounded-full transform translate-x-1/2 translate-y-1/2 animate-pulse" />
         </div>
 
-        <div className="relative z-10 flex flex-col h-full w-full max-w-4xl mx-auto overflow-hidden rounded-lg border border-severino-pink bg-severino-dark/80 backdrop-blur-sm shadow-lg shadow-severino-pink/20">
-          <div className="border-b border-severino-pink bg-severino-dark/90 px-4 py-2">
+        <div className="relative z-10 flex flex-col h-full w-full max-w-4xl mx-auto overflow-hidden rounded-lg border border-cyan-500/50 bg-cyber-dark/80 backdrop-blur-sm shadow-lg shadow-cyan-500/20">
+          <div className="border-b border-cyan-500/50 bg-cyber-dark/90 px-4 py-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Terminal className="h-5 w-5 text-severino-pink" />
-                <h2 className="text-lg font-mono font-semibold text-severino-pink">
+                <Terminal className="h-5 w-5 text-cyan-500" />
+                <h2 className="text-lg font-mono font-semibold text-cyan-500">
                   Severino Nexus v2.0
                 </h2>
               </div>
@@ -317,25 +345,25 @@ export default function Chatbot() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-severino-pink hover:bg-severino-pink/20"
+                  className="text-cyan-500 hover:bg-cyan-500/20"
                   onClick={() => addTab()}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-severino-pink hover:bg-severino-pink/20">
+                    <Button variant="ghost" className="text-cyan-500 hover:bg-cyan-500/20">
                       <span className="mr-2">Terminal {activeTabId}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-severino-dark border-severino-pink">
+                  <DropdownMenuContent align="end" className="bg-cyber-dark border-cyan-500/50">
                     {tabs.map(tab => (
                       <DropdownMenuItem
                         key={tab.id}
                         className={cn(
                           "flex items-center justify-between",
-                          tab.id === activeTabId && "bg-severino-pink/20"
+                          tab.id === activeTabId && "bg-cyan-500/20"
                         )}
                         onClick={() => setActiveTabId(tab.id)}
                       >
@@ -344,7 +372,7 @@ export default function Chatbot() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-4 w-4 ml-2 text-severino-pink hover:bg-severino-pink/20"
+                            className="h-4 w-4 ml-2 text-cyan-500 hover:bg-cyan-500/20"
                             onClick={(e) => {
                               e.stopPropagation();
                               if (tabs.length > 1) {
@@ -372,14 +400,14 @@ export default function Chatbot() {
                 <div
                   className={`relative max-w-[80%] rounded px-3 py-2 ${
                     msg.isUser
-                      ? "bg-severino-pink/20 text-gray-100 border border-severino-pink/50"
+                      ? "bg-cyan-500/20 text-gray-100 border border-cyan-500/50"
                       : "bg-cyan-500/10 text-gray-100 border border-cyan-500/50"
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     <span className={cn(
                       "select-none",
-                      msg.isUser ? "text-severino-pink" : "text-cyan-500"
+                      msg.isUser ? "text-cyan-500" : "text-cyan-500"
                     )}>
                       {msg.isUser ? '>' : '$'}
                     </span>
@@ -392,7 +420,7 @@ export default function Chatbot() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute -right-10 top-0 opacity-0 transition-opacity group-hover:opacity-100 text-severino-pink hover:text-severino-pink/80"
+                    className="absolute -right-10 top-0 opacity-0 transition-opacity group-hover:opacity-100 text-cyan-500 hover:text-cyan-500/80"
                     onClick={() => copyMessage(msg.text, i)}
                   >
                     {copiedIndex === i ? (
@@ -404,7 +432,7 @@ export default function Chatbot() {
                 </div>
               </div>
             ))}
-            
+
             {isTyping && (
               <div className="flex items-center gap-2 text-cyan-500 animate-fadeIn">
                 <span>$</span>
@@ -418,9 +446,9 @@ export default function Chatbot() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-severino-pink bg-severino-dark/90 p-4">
+          <div className="border-t border-cyan-500/50 bg-cyber-dark/90 p-4">
             <div className="flex gap-2 items-center font-mono">
-              <span className="text-severino-pink select-none">{'>'}</span>
+              <span className="text-cyan-500 select-none">{'>'}</span>
               <textarea
                 rows={1}
                 className="flex-1 bg-transparent border-none text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 resize-none"
@@ -431,7 +459,7 @@ export default function Chatbot() {
                 disabled={isTyping}
                 style={{ minHeight: '24px', maxHeight: '120px' }}
               />
-              <Button 
+              <Button
                 onClick={handleSend}
                 className="shrink-0 bg-gradient-to-r from-severino-pink to-cyan-500 text-white hover:opacity-90"
                 disabled={isTyping || !newMessage.trim()}

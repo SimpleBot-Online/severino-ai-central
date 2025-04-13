@@ -12,6 +12,7 @@
     linear-gradient(90deg, rgba(0, 255, 200, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
   z-index: 0;
+  pointer-events: none;
 }
 
 /* Cyberpunk scanline effect */
@@ -53,11 +54,13 @@
   border: 1px solid rgba(0, 255, 200, 0.3) !important;
   color: rgba(0, 255, 200, 0.9) !important;
   font-family: 'IBM Plex Mono', monospace !important;
+  transition: all 0.2s ease !important;
 }
 
 .severino-input:focus {
   border-color: rgba(0, 255, 200, 0.7) !important;
   box-shadow: 0 0 0 2px rgba(0, 255, 200, 0.2) !important;
+  outline: none !important;
 }
 
 /* Custom button styles */
@@ -69,11 +72,18 @@
   text-transform: uppercase !important;
   letter-spacing: 1px !important;
   transition: all 0.2s ease !important;
+  border-radius: 0 !important;
 }
 
 .severino-button:hover {
   background-color: rgba(0, 255, 200, 0.3) !important;
   box-shadow: 0 0 10px rgba(0, 255, 200, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+.severino-button:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 0 5px rgba(0, 255, 200, 0.2) !important;
 }
 
 .severino-button-secondary {
@@ -83,11 +93,18 @@
   font-family: 'IBM Plex Mono', monospace !important;
   text-transform: uppercase !important;
   letter-spacing: 1px !important;
+  border-radius: 0 !important;
+  transition: all 0.2s ease !important;
 }
 
 .severino-button-secondary:hover {
   background-color: rgba(0, 255, 200, 0.1) !important;
   border-color: rgba(0, 255, 200, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+.severino-button-secondary:active {
+  transform: translateY(1px) !important;
 }
 
 /* Animation */
@@ -96,6 +113,47 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes glitchEffect {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes scanlineEffect {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-glitch {
+  animation: glitchEffect 0.3s infinite;
+}
+
+.animate-scanline {
+  animation: scanlineEffect 8s linear infinite;
+}
+
+/* Additional cyberpunk elements */
+.cyber-text {
+  color: #00FFC8;
+  text-shadow: 0 0 5px rgba(0, 255, 200, 0.7);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.cyber-border {
+  border: 1px solid rgba(0, 255, 200, 0.3);
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.2);
+}
+
+.cyber-panel {
+  background-color: rgba(15, 15, 20, 0.8);
+  border: 1px solid rgba(0, 255, 200, 0.3);
+  box-shadow: 0 0 15px rgba(0, 255, 200, 0.2);
+  backdrop-filter: blur(5px);
 }

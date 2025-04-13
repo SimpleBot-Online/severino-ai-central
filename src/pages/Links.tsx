@@ -6,13 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Plus, 
-  Search, 
-  Link as LinkIcon, 
-  Edit, 
-  Trash2, 
-  Save, 
+import {
+  Plus,
+  Search,
+  Link as LinkIcon,
+  Edit,
+  Trash2,
+  Save,
   ExternalLink,
   Tag,
   Filter
@@ -55,8 +55,8 @@ const Links = () => {
   const categories = ['all', ...Array.from(new Set(links.map(link => link.category)))];
 
   const filteredLinks = links
-    .filter(link => 
-      (link.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    .filter(link =>
+      (link.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       link.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (categoryFilter === 'all' || link.category === categoryFilter)
     )
@@ -92,7 +92,7 @@ const Links = () => {
       category: '',
     });
     setIsAddDialogOpen(false);
-    
+
     toast({
       title: "Link adicionado",
       description: "Seu link foi adicionado com sucesso.",
@@ -129,7 +129,7 @@ const Links = () => {
     });
     setCurrentLink(null);
     setIsEditDialogOpen(false);
-    
+
     toast({
       title: "Link atualizado",
       description: "Seu link foi atualizado com sucesso.",
@@ -141,7 +141,7 @@ const Links = () => {
       deleteLink(currentLink.id);
       setCurrentLink(null);
       setIsDeleteDialogOpen(false);
-      
+
       toast({
         title: "Link excluído",
         description: "Seu link foi excluído com sucesso.",
@@ -158,7 +158,7 @@ const Links = () => {
       <div className="animate-fadeIn">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Links Úteis</h1>
-          
+
           <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto mt-4 md:mt-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -169,7 +169,7 @@ const Links = () => {
                 className="pl-10 bg-severino-gray border-severino-lightgray"
               />
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="bg-severino-gray border-severino-lightgray">
@@ -187,10 +187,10 @@ const Links = () => {
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)} 
-              className="bg-severino-pink hover:bg-severino-pink/90"
+
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              variant="terminal"
             >
               <Plus size={18} className="mr-2" />
               Novo Link
@@ -201,7 +201,7 @@ const Links = () => {
         {filteredLinks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredLinks.map((link) => (
-              <Card key={link.id} className="bg-severino-gray border-severino-lightgray hover:border-severino-pink/50 transition-colors">
+              <Card key={link.id} className="bg-cyber-dark border-cyan-500/20 hover:border-cyan-500/50 transition-colors">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -218,7 +218,7 @@ const Links = () => {
                           setCurrentLink(link);
                           setIsEditDialogOpen(true);
                         }}
-                        className="p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-severino-lightgray"
+                        className="p-1.5 text-gray-400 hover:text-cyan-400 rounded-full hover:bg-cyan-500/10"
                       >
                         <Edit size={16} />
                       </button>
@@ -227,20 +227,21 @@ const Links = () => {
                           setCurrentLink(link);
                           setIsDeleteDialogOpen(true);
                         }}
-                        className="p-1.5 text-gray-400 hover:text-red-400 rounded-full hover:bg-severino-lightgray"
+                        className="p-1.5 text-gray-400 hover:text-red-400 rounded-full hover:bg-red-500/10"
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
-                  
+
                   <h3 className="font-bold text-lg mb-2 line-clamp-1">{link.title}</h3>
-                  
+
                   <p className="text-gray-300 text-sm mb-3 line-clamp-2">{link.description}</p>
-                  
-                  <Button 
-                    onClick={() => openExternalLink(link.url)} 
-                    className="w-full bg-severino-lightgray hover:bg-severino-lightgray/80"
+
+                  <Button
+                    onClick={() => openExternalLink(link.url)}
+                    className="w-full"
+                    variant="terminal"
                   >
                     <ExternalLink size={16} className="mr-2" />
                     Abrir Link
@@ -250,17 +251,17 @@ const Links = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-12 bg-severino-gray rounded-lg">
-            <LinkIcon size={48} className="text-gray-500 mb-4" />
+          <div className="flex flex-col items-center justify-center p-12 bg-cyber-dark rounded-lg border border-cyan-500/20">
+            <LinkIcon size={48} className="text-cyan-500/50 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Nenhum link encontrado</h3>
             <p className="text-gray-400 text-center mb-4">
-              {searchTerm || categoryFilter !== 'all' 
-                ? 'Nenhum link corresponde aos seus filtros.' 
+              {searchTerm || categoryFilter !== 'all'
+                ? 'Nenhum link corresponde aos seus filtros.'
                 : 'Você ainda não tem nenhum link útil.'}
             </p>
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)} 
-              className="bg-severino-pink hover:bg-severino-pink/90"
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              variant="terminal"
             >
               <Plus size={18} className="mr-2" />
               Adicionar Link
@@ -271,14 +272,14 @@ const Links = () => {
 
       {/* Add Link Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="bg-severino-gray border-severino-lightgray sm:max-w-md">
+        <DialogContent className="bg-cyber-dark border-cyan-500/30 sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Novo Link</DialogTitle>
             <DialogDescription>
               Adicione um novo link útil.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Título</label>
@@ -289,7 +290,7 @@ const Links = () => {
                 className="bg-severino-lightgray border-severino-lightgray"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">URL</label>
               <Input
@@ -299,7 +300,7 @@ const Links = () => {
                 className="bg-severino-lightgray border-severino-lightgray"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Descrição</label>
               <Textarea
@@ -309,7 +310,7 @@ const Links = () => {
                 className="bg-severino-lightgray border-severino-lightgray min-h-[80px]"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Categoria</label>
               <Input
@@ -320,18 +321,18 @@ const Links = () => {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              onClick={() => setIsAddDialogOpen(false)} 
+            <Button
+              onClick={() => setIsAddDialogOpen(false)}
               variant="outline"
-              className="bg-severino-lightgray text-white border-severino-lightgray hover:bg-severino-lightgray/80"
+              className="bg-cyber-dark text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/10"
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={handleAddLink} 
-              className="bg-severino-pink hover:bg-severino-pink/90"
+            <Button
+              onClick={handleAddLink}
+              variant="terminal"
             >
               <Save size={16} className="mr-2" />
               Salvar
@@ -342,14 +343,14 @@ const Links = () => {
 
       {/* Edit Link Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-severino-gray border-severino-lightgray sm:max-w-md">
+        <DialogContent className="bg-cyber-dark border-cyan-500/30 sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar Link</DialogTitle>
             <DialogDescription>
               Atualize seu link útil.
             </DialogDescription>
           </DialogHeader>
-          
+
           {currentLink && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -361,7 +362,7 @@ const Links = () => {
                   className="bg-severino-lightgray border-severino-lightgray"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">URL</label>
                 <Input
@@ -371,7 +372,7 @@ const Links = () => {
                   className="bg-severino-lightgray border-severino-lightgray"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Descrição</label>
                 <Textarea
@@ -381,7 +382,7 @@ const Links = () => {
                   className="bg-severino-lightgray border-severino-lightgray min-h-[80px]"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Categoria</label>
                 <Input
@@ -393,17 +394,17 @@ const Links = () => {
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button 
-              onClick={() => setIsEditDialogOpen(false)} 
+            <Button
+              onClick={() => setIsEditDialogOpen(false)}
               variant="outline"
               className="bg-severino-lightgray text-white border-severino-lightgray hover:bg-severino-lightgray/80"
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={handleEditLink} 
+            <Button
+              onClick={handleEditLink}
               className="bg-severino-pink hover:bg-severino-pink/90"
             >
               <Save size={16} className="mr-2" />
@@ -422,7 +423,7 @@ const Links = () => {
               Tem certeza que deseja excluir este link? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
-          
+
           {currentLink && (
             <div className="py-4">
               <div className="p-3 bg-severino-lightgray rounded-lg">
@@ -440,17 +441,17 @@ const Links = () => {
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button 
-              onClick={() => setIsDeleteDialogOpen(false)} 
+            <Button
+              onClick={() => setIsDeleteDialogOpen(false)}
               variant="outline"
               className="bg-severino-lightgray text-white border-severino-lightgray hover:bg-severino-lightgray/80"
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={handleDeleteLink} 
+            <Button
+              onClick={handleDeleteLink}
               variant="destructive"
             >
               <Trash2 size={16} className="mr-2" />

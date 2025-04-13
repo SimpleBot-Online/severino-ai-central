@@ -84,4 +84,37 @@ export interface UserProfile {
   updatedAt: string;
 }
 
+export type ClientStatus = 'prospect' | 'lead' | 'negotiation' | 'client' | 'inactive';
+export type ClientCategory = 'individual' | 'company' | 'partner';
+
+export interface Client {
+  id: string;
+  name: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  status: ClientStatus;
+  category: ClientCategory;
+  notes?: string;
+  value?: number;
+  nextContactDate?: Date;
+  lastContactDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+}
+
+export interface FinancialRecord {
+  id: string;
+  clientId: string;
+  description: string;
+  amount: number;
+  type: 'income' | 'expense';
+  date: Date;
+  category?: string;
+  status: 'pending' | 'completed' | 'cancelled';
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+}
 

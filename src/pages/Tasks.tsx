@@ -6,14 +6,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Plus, 
-  Search, 
-  Calendar, 
-  CheckSquare, 
-  Edit, 
-  Trash2, 
-  Save, 
+import {
+  Plus,
+  Search,
+  Calendar,
+  CheckSquare,
+  Edit,
+  Trash2,
+  Save,
   Clock,
   Filter,
   Check
@@ -52,8 +52,8 @@ const Tasks = () => {
   const { toast } = useToast();
 
   const filteredTasks = tasks
-    .filter(task => 
-      (task.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    .filter(task =>
+      (task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (statusFilter === 'all' || task.status === statusFilter)
     )
@@ -106,7 +106,7 @@ const Tasks = () => {
       dueDate: new Date().toISOString().split('T')[0],
     });
     setIsAddDialogOpen(false);
-    
+
     toast({
       title: "Tarefa adicionada",
       description: "Sua tarefa foi adicionada com sucesso.",
@@ -130,7 +130,7 @@ const Tasks = () => {
     });
     setCurrentTask(null);
     setIsEditDialogOpen(false);
-    
+
     toast({
       title: "Tarefa atualizada",
       description: "Sua tarefa foi atualizada com sucesso.",
@@ -142,7 +142,7 @@ const Tasks = () => {
       deleteTask(currentTask.id);
       setCurrentTask(null);
       setIsDeleteDialogOpen(false);
-      
+
       toast({
         title: "Tarefa excluída",
         description: "Sua tarefa foi excluída com sucesso.",
@@ -152,7 +152,7 @@ const Tasks = () => {
 
   const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
     updateTaskStatus(taskId, newStatus);
-    
+
     toast({
       title: "Status atualizado",
       description: `Tarefa marcada como ${getStatusLabel(newStatus)}.`,
@@ -164,7 +164,7 @@ const Tasks = () => {
       <div className="animate-fadeIn">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Tarefas</h1>
-          
+
           <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto mt-4 md:mt-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -175,7 +175,7 @@ const Tasks = () => {
                 className="pl-10 bg-severino-gray border-severino-lightgray"
               />
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="bg-severino-gray border-severino-lightgray">
@@ -192,10 +192,10 @@ const Tasks = () => {
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)} 
-              className="bg-severino-pink hover:bg-severino-pink/90"
+
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              variant="terminal"
             >
               <Plus size={18} className="mr-2" />
               Nova Tarefa
@@ -206,7 +206,7 @@ const Tasks = () => {
         {filteredTasks.length > 0 ? (
           <div className="space-y-4">
             {filteredTasks.map((task) => (
-              <Card key={task.id} className="bg-severino-gray border-severino-lightgray hover:border-severino-pink/50 transition-colors">
+              <Card key={task.id} className="bg-cyber-dark/80 border-green-500/30 hover:border-green-500/50 transition-colors">
                 <CardContent className="p-5">
                   <div className="flex flex-col md:flex-row md:items-center justify-between">
                     <div className="flex-1">
@@ -219,23 +219,23 @@ const Tasks = () => {
                           {formatDate(task.dueDate)}
                         </div>
                       </div>
-                      
+
                       <h3 className="font-bold text-lg mb-1">{task.title}</h3>
                       <p className="text-gray-300 text-sm">{task.description}</p>
                     </div>
-                    
+
                     <div className="flex mt-4 md:mt-0 space-x-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            className="bg-severino-lightgray border-severino-lightgray h-9"
+                          <Button
+                            variant="outline"
+                            className="bg-cyber-dark/60 border-green-500/30 h-9 hover:bg-green-500/10 hover:border-green-500/50"
                           >
-                            <CheckSquare size={16} className="mr-2" />
+                            <CheckSquare size={16} className="mr-2 text-green-500" />
                             Status
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-severino-gray border-severino-lightgray">
+                        <DropdownMenuContent className="bg-cyber-dark/80 border-green-500/30">
                           <DropdownMenuRadioGroup value={task.status} onValueChange={(value) => handleStatusChange(task.id, value as Task['status'])}>
                             <DropdownMenuRadioItem value="pending">Pendente</DropdownMenuRadioItem>
                             <DropdownMenuRadioItem value="in-progress">Em Progresso</DropdownMenuRadioItem>
@@ -243,10 +243,10 @@ const Tasks = () => {
                           </DropdownMenuRadioGroup>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                      
-                      <Button 
-                        variant="outline" 
-                        className="bg-severino-lightgray border-severino-lightgray h-9"
+
+                      <Button
+                        variant="outline"
+                        className="bg-cyber-dark/60 border-green-500/30 h-9"
                         onClick={() => {
                           setCurrentTask(task);
                           setIsEditDialogOpen(true);
@@ -254,10 +254,10 @@ const Tasks = () => {
                       >
                         <Edit size={16} />
                       </Button>
-                      
-                      <Button 
-                        variant="outline" 
-                        className="bg-severino-lightgray border-severino-lightgray h-9 hover:text-red-400"
+
+                      <Button
+                        variant="outline"
+                        className="bg-cyber-dark/60 border-green-500/30 h-9 hover:text-red-400"
                         onClick={() => {
                           setCurrentTask(task);
                           setIsDeleteDialogOpen(true);
@@ -272,17 +272,17 @@ const Tasks = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-12 bg-severino-gray rounded-lg">
+          <div className="flex flex-col items-center justify-center p-12 bg-cyber-dark/80 border border-green-500/30 rounded-lg">
             <CheckSquare size={48} className="text-gray-500 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Nenhuma tarefa encontrada</h3>
             <p className="text-gray-400 text-center mb-4">
-              {searchTerm || statusFilter !== 'all' 
-                ? 'Nenhuma tarefa corresponde aos seus filtros.' 
+              {searchTerm || statusFilter !== 'all'
+                ? 'Nenhuma tarefa corresponde aos seus filtros.'
                 : 'Você ainda não tem nenhuma tarefa.'}
             </p>
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)} 
-              className="bg-severino-pink hover:bg-severino-pink/90"
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              className="bg-green-500 hover:bg-green-600 text-black"
             >
               <Plus size={18} className="mr-2" />
               Criar Tarefa
@@ -293,14 +293,14 @@ const Tasks = () => {
 
       {/* Add Task Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="bg-severino-gray border-severino-lightgray sm:max-w-md">
+        <DialogContent className="bg-cyber-dark/80 border-green-500/30 sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Tarefa</DialogTitle>
             <DialogDescription>
               Crie uma nova tarefa para seu projeto.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Título</label>
@@ -311,7 +311,7 @@ const Tasks = () => {
                 className="bg-severino-lightgray border-severino-lightgray"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Descrição</label>
               <Textarea
@@ -321,7 +321,7 @@ const Tasks = () => {
                 className="bg-severino-lightgray border-severino-lightgray min-h-[100px]"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Data de Vencimento</label>
               <Input
@@ -332,17 +332,17 @@ const Tasks = () => {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              onClick={() => setIsAddDialogOpen(false)} 
+            <Button
+              onClick={() => setIsAddDialogOpen(false)}
               variant="outline"
               className="bg-severino-lightgray text-white border-severino-lightgray hover:bg-severino-lightgray/80"
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={handleAddTask} 
+            <Button
+              onClick={handleAddTask}
               className="bg-severino-pink hover:bg-severino-pink/90"
             >
               <Save size={16} className="mr-2" />
@@ -361,7 +361,7 @@ const Tasks = () => {
               Atualize sua tarefa.
             </DialogDescription>
           </DialogHeader>
-          
+
           {currentTask && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -373,7 +373,7 @@ const Tasks = () => {
                   className="bg-severino-lightgray border-severino-lightgray"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Descrição</label>
                 <Textarea
@@ -383,26 +383,26 @@ const Tasks = () => {
                   className="bg-severino-lightgray border-severino-lightgray min-h-[100px]"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Data de Vencimento</label>
                 <Input
                   type="date"
                   value={new Date(currentTask.dueDate).toISOString().split('T')[0]}
-                  onChange={(e) => setCurrentTask({ 
-                    ...currentTask, 
-                    dueDate: new Date(e.target.value) 
+                  onChange={(e) => setCurrentTask({
+                    ...currentTask,
+                    dueDate: new Date(e.target.value)
                   })}
                   className="bg-severino-lightgray border-severino-lightgray"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Status</label>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="bg-severino-lightgray border-severino-lightgray w-full justify-start"
                     >
                       <span className={`w-3 h-3 rounded-full mr-2 ${
@@ -414,11 +414,11 @@ const Tasks = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-severino-gray border-severino-lightgray">
-                    <DropdownMenuRadioGroup 
-                      value={currentTask.status} 
-                      onValueChange={(value) => setCurrentTask({ 
-                        ...currentTask, 
-                        status: value as Task['status'] 
+                    <DropdownMenuRadioGroup
+                      value={currentTask.status}
+                      onValueChange={(value) => setCurrentTask({
+                        ...currentTask,
+                        status: value as Task['status']
                       })}
                     >
                       <DropdownMenuRadioItem value="pending">Pendente</DropdownMenuRadioItem>
@@ -430,17 +430,17 @@ const Tasks = () => {
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button 
-              onClick={() => setIsEditDialogOpen(false)} 
+            <Button
+              onClick={() => setIsEditDialogOpen(false)}
               variant="outline"
               className="bg-severino-lightgray text-white border-severino-lightgray hover:bg-severino-lightgray/80"
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={handleEditTask} 
+            <Button
+              onClick={handleEditTask}
               className="bg-severino-pink hover:bg-severino-pink/90"
             >
               <Save size={16} className="mr-2" />
@@ -459,7 +459,7 @@ const Tasks = () => {
               Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
-          
+
           {currentTask && (
             <div className="py-4">
               <div className="p-3 bg-severino-lightgray rounded-lg">
@@ -477,17 +477,17 @@ const Tasks = () => {
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button 
-              onClick={() => setIsDeleteDialogOpen(false)} 
+            <Button
+              onClick={() => setIsDeleteDialogOpen(false)}
               variant="outline"
               className="bg-severino-lightgray text-white border-severino-lightgray hover:bg-severino-lightgray/80"
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={handleDeleteTask} 
+            <Button
+              onClick={handleDeleteTask}
               variant="destructive"
             >
               <Trash2 size={16} className="mr-2" />

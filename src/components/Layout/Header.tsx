@@ -57,13 +57,13 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             className="relative text-foreground hover:text-accent-foreground"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-severino-pink" />
+            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-green-500" />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-severino-pink text-primary-foreground">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500 text-primary-foreground">
                   <User className="h-5 w-5" />
                 </div>
               </Button>
@@ -100,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-severino-pink focus:text-severino-pink"
+                className="text-green-500 focus:text-green-500"
                 onClick={logout}
               >
                 <LogOut className="mr-2 h-4 w-4" />

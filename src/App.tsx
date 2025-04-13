@@ -26,6 +26,9 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const SavedPrompts = lazy(() => import("./pages/SavedPrompts"));
 const MelhorRobo = lazy(() => import("./pages/MelhorRobo"));
 
+const ClientBoard = lazy(() => import("./pages/ClientBoard"));
+const SimpleBot = lazy(() => import("./pages/SimpleBot"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -85,6 +88,9 @@ const App = () => {
                   <Route path="/assistants" element={<PrivateRoute><Assistants /></PrivateRoute>} />
                   <Route path="/farm" element={<PrivateRoute><ChipHeating /></PrivateRoute>} />
                   <Route path="/melhor-robo" element={<PrivateRoute><MelhorRobo /></PrivateRoute>} />
+
+                  <Route path="/clients" element={<PrivateRoute><ClientBoard /></PrivateRoute>} />
+                  <Route path="/simplebot" element={<PrivateRoute><SimpleBot /></PrivateRoute>} />
                   <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 
                   <Route path="*" element={<NotFound />} />

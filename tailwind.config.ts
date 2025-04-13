@@ -81,9 +81,12 @@ const config: Config = {
           tertiary: "#7C00FF",
           dark: "#0F0F14",
           light: "#EEFFFF",
-          code: "#32FF00",
+          code: "#00FFC8",
           warning: "#FF9D00",
           error: "#FF003C",
+          glow: "rgba(0, 255, 200, 0.7)",
+          muted: "rgba(0, 255, 200, 0.5)",
+          border: "rgba(0, 255, 200, 0.3)",
         },
       },
       borderRadius: {
@@ -151,11 +154,14 @@ const config: Config = {
       textShadow: {
         'cyber': '0 0 5px #00FFC8, 0 0 10px #00FFC8',
         'cyber-glow': '0 0 7px #FF003C',
+        'terminal': '0 0 5px rgba(0, 255, 200, 0.5)',
       },
       boxShadow: {
         'cyber': '0 0 10px rgba(0, 255, 200, 0.7), inset 0 0 10px rgba(0, 255, 200, 0.5)',
         'cyber-input': '0 0 5px rgba(0, 255, 200, 0.5), inset 0 0 5px rgba(0, 255, 200, 0.2)',
         'cyber-button': '0 0 15px rgba(255, 0, 60, 0.7), inset 0 0 8px rgba(255, 0, 60, 0.5)',
+        'terminal': '0 0 10px rgba(0, 255, 200, 0.3)',
+        'terminal-hover': '0 0 15px rgba(0, 255, 200, 0.5)',
       },
     },
   },

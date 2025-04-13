@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -9,16 +10,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 border border-primary/50 hover:shadow-[0_0_10px_rgba(0,255,200,0.3)]",
+        default: "bg-black border border-green-500/50 text-green-500 hover:bg-green-500/10 hover:border-green-500/90 hover:shadow-[0_0_10px_rgba(0,255,200,0.3)]",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 border border-destructive/50",
+          "bg-black border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500/80",
         outline:
-          "border border-input bg-background/50 hover:bg-accent/20 hover:text-accent-foreground hover:border-accent/70",
+          "border border-green-500/30 bg-black hover:bg-green-500/10 hover:text-green-400 hover:border-green-500/70",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-secondary/50",
-        ghost: "hover:bg-accent/10 hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
-        terminal: "bg-black/70 border border-green-500/30 text-green-400 hover:bg-black/90 hover:border-green-500/70 hover:text-green-300 font-mono",
+          "bg-black border border-green-500/30 text-green-500/80 hover:bg-green-500/10 hover:text-green-400",
+        ghost: "text-green-500/80 hover:bg-green-500/10 hover:text-green-400",
+        link: "text-green-500 underline-offset-4 hover:underline hover:text-green-400",
+        terminal: "bg-black border border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/70 hover:text-green-300 font-mono",
       },
       size: {
         default: "h-10 px-4 py-2",

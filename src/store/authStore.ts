@@ -25,32 +25,33 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       userId: AUTH.DEFAULT_USER_ID,
-      loading: true, // Começa como true para evitar flash de conteúdo não autenticado
+      loading: true, // Start as true to avoid content flash
 
       login: async (password: string) => {
         try {
-          console.log('Tentando login com a senha:', password);
-          console.log('Senha mestra configurada:', AUTH.MASTER_PASSWORD);
+          console.log('Attempting login with password:', password);
+          console.log('Master password configured:', AUTH.MASTER_PASSWORD);
           
-          // Verificar se a senha corresponde à senha mestra
+          // Verify if password matches master password
           if (password === AUTH.MASTER_PASSWORD) {
-            console.log('Senha corresponde, autenticando usuário');
+            console.log('Password matches, authenticating user');
             set({
               isAuthenticated: true,
               loading: false,
             });
             return { error: null };
           } else {
-            console.log('Senha incorreta');
+            console.log('Password incorrect');
             return { error: new Error('Senha incorreta') };
           }
         } catch (error) {
-          console.error('Erro durante o login:', error);
+          console.error('Error during login:', error);
           return { error: error instanceof Error ? error : new Error(String(error)) };
         }
       },
 
       logout: () => {
+        console.log('Logging out user');
         set({
           isAuthenticated: false,
           loading: false,
@@ -58,17 +59,17 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: () => {
-        // Verifica se o usuário está autenticado no localStorage
+        // Check if user is authenticated in localStorage
         const storedState = localStorage.getItem(DATABASE.STORAGE_KEYS.AUTH);
 
         if (storedState) {
           try {
             const parsedState = JSON.parse(storedState);
-            console.log('Estado armazenado:', parsedState);
+            console.log('Stored state:', parsedState);
 
-            // Se o estado armazenado indica que o usuário está autenticado, mantém a autenticação
+            // If stored state indicates user is authenticated, maintain authentication
             if (parsedState.state && parsedState.state.isAuthenticated) {
-              console.log('Usuário já autenticado, mantendo autenticação');
+              console.log('User already authenticated, maintaining authentication');
               set({
                 isAuthenticated: true,
                 loading: false,
@@ -76,12 +77,12 @@ export const useAuthStore = create<AuthState>()(
               return;
             }
           } catch (e) {
-            console.error('Erro ao analisar estado armazenado:', e);
+            console.error('Error parsing stored state:', e);
           }
         }
 
-        // Se não houver estado armazenado ou o usuário não estiver autenticado
-        console.log('Usuário não autenticado');
+        // If no stored state or user is not authenticated
+        console.log('User not authenticated');
         set({
           isAuthenticated: false,
           loading: false,
@@ -98,7 +99,7 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-// Inicializa a verificação de autenticação quando o módulo é carregado
+// Initialize authentication check when module is loaded
 if (typeof window !== 'undefined') {
   useAuthStore.getState().checkAuth();
 }

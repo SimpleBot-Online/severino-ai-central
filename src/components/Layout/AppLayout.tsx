@@ -7,6 +7,7 @@ import { useSettingsStore } from '../../store/dataStore';
 import { Navigate, useLocation } from 'react-router-dom';
 import FloatingChat from '../FloatingChat';
 import SetApiKey from '../SetApiKey';
+import { Terminal, Loader2 } from 'lucide-react';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -36,14 +37,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-cyber-dark">
-        <div className="flex flex-col items-center justify-center">
+      <div className="flex items-center justify-center h-screen bg-black">
+        <div className="cyberpunk-grid"></div>
+        <div className="cyberpunk-scanline"></div>
+        
+        <div className="flex flex-col items-center justify-center z-10">
           <div className="relative w-16 h-16 mb-4">
-            <div className="absolute inset-0 border-2 border-t-cyber-primary border-r-cyber-primary border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-            <div className="absolute inset-2 border-2 border-t-transparent border-r-transparent border-b-cyan-500 border-l-cyan-500 rounded-full animate-spin animation-delay-500"></div>
+            <Terminal className="w-12 h-12 text-green-500 animate-pulse" />
+            <div className="absolute inset-0 rounded-full border-2 border-t-green-500 border-r-green-500 border-b-transparent border-l-transparent animate-spin"></div>
           </div>
-          <div className="text-cyber-primary font-mono text-sm">INICIALIZANDO SISTEMA</div>
-          <div className="text-cyan-500/50 font-mono text-xs mt-2 animate-pulse">CARREGANDO MÓDULOS</div>
+          <div className="text-green-500 font-mono text-sm terminal-prompt">INICIALIZANDO SISTEMA</div>
+          <div className="text-green-500/70 font-mono text-xs mt-2 animate-blink">CARREGANDO MÓDULOS</div>
         </div>
       </div>
     );
@@ -65,14 +69,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen bg-background font-mono relative">
+    <div className="flex min-h-screen bg-black font-mono relative">
       {/* Cyberpunk grid overlay */}
       <div className="cyberpunk-grid"></div>
       <div className="cyberpunk-scanline"></div>
 
       {/* Overlay for mobile when sidebar is open */}
       <div
-        className={`fixed inset-0 z-30 bg-cyber-dark/80 backdrop-blur-sm transition-all duration-300
+        className={`fixed inset-0 z-30 bg-black/80 backdrop-blur-sm transition-all duration-300
           lg:hidden ${!sidebarCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={toggleSidebar}
       />
@@ -90,8 +94,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             {children}
           </div>
         </main>
-        <footer className="py-2 px-4 md:px-6 border-t border-cyber-primary/20 text-center text-xs text-foreground/50 font-mono">
-          <p>SEVERINO IA CENTRAL v1.0.2 &copy; 2025 <span className="text-cyber-primary">|</span> SISTEMA OPERACIONAL: ONLINE <span className="text-cyber-primary">|</span> STATUS: CONECTADO</p>
+        <footer className="py-2 px-4 md:px-6 border-t border-green-500/20 text-center text-xs text-green-500/50 font-mono">
+          <div className="flex justify-between items-center">
+            <span>SEVERINO.AI</span>
+            <span>v1.0.2 &copy; 2025</span>
+            <span className="text-green-500/70 animate-pulse">SISTEMA ONLINE</span>
+          </div>
         </footer>
       </div>
 

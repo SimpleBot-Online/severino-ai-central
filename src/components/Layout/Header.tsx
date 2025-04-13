@@ -18,7 +18,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
-  const { user, logout } = useAuthStore();
+  const { userId, logout } = useAuthStore();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -72,12 +72,8 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <DropdownMenuContent align="end" className="w-56 bg-card border-border">
               <div className="flex items-center justify-start gap-2 p-2">
                 <div className="flex flex-col space-y-1 leading-none">
-                  {user?.email && (
-                    <>
-                      <p className="font-medium">{user.email.split('@')[0]}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </>
-                  )}
+                  <p className="font-medium">Administrador</p>
+                  <p className="text-xs text-muted-foreground">Acesso Master</p>
                 </div>
               </div>
               <DropdownMenuSeparator />

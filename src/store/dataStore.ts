@@ -24,7 +24,7 @@ const useNotesStore = create<NotesState>()(
           content,
           createdAt: new Date(),
           updatedAt: new Date(),
-          userId: 'temporary-user-id'
+          userId: 'admin'
         };
         set((state) => ({ notes: [newNote, ...state.notes] }));
       },
@@ -66,7 +66,7 @@ const useTasksStore = create<TasksState>()(
           dueDate,
           status: 'pending',
           createdAt: new Date(),
-          userId: 'temporary-user-id'
+          userId: 'admin'
         };
         set((state) => ({ tasks: [newTask, ...state.tasks] }));
       },
@@ -114,7 +114,7 @@ const useLinksStore = create<LinksState>()(
           description,
           category,
           createdAt: new Date(),
-          userId: 'temporary-user-id'
+          userId: 'admin'
         };
         set((state) => ({ links: [newLink, ...state.links] }));
       },
@@ -154,7 +154,7 @@ const useIdeasStore = create<IdeasState>()(
           description,
           category,
           createdAt: new Date(),
-          userId: 'temporary-user-id'
+          userId: 'admin'
         };
         set((state) => ({ ideas: [newIdea, ...state.ideas] }));
       },
@@ -191,7 +191,7 @@ const useChatStore = create<ChatState>((set) => ({
       sender,
       content,
       timestamp: new Date(),
-      userId: 'temporary-user-id'
+      userId: 'admin'
     };
     set((state) => ({ messages: [...state.messages, newMessage] }));
   },
@@ -205,7 +205,7 @@ const useChatStore = create<ChatState>((set) => ({
         sender: 'user',
         content,
         timestamp: new Date(),
-        userId: 'temporary-user-id'
+        userId: 'admin'
       };
       set((state) => ({ messages: [...state.messages, userMessage] }));
 
@@ -215,7 +215,7 @@ const useChatStore = create<ChatState>((set) => ({
           sender: 'CEO',
           content: `Response to: ${content}`,
           timestamp: new Date(),
-          userId: 'temporary-user-id'
+          userId: 'admin'
         };
         set((state) => ({ messages: [...state.messages, botResponse] }));
       }, 1000);
@@ -245,10 +245,10 @@ const usePromptsStore = create<PromptsState>()(
           content,
           category,
           createdAt: new Date(),
-          userId: 'temporary-user-id'
+          userId: 'admin'
         };
-        set((state) => ({ 
-          prompts: [newPrompt, ...state.prompts] 
+        set((state) => ({
+          prompts: [newPrompt, ...state.prompts]
         }));
       },
       updatePrompt: (id, updates) => {
@@ -299,7 +299,7 @@ const useChipInstancesStore = create<ChipInstancesState>()(
           phone,
           status: 'inactive',
           createdAt: new Date(),
-          userId: 'temporary-user-id'
+          userId: 'admin'
         };
         set((state) => ({ instances: [newInstance, ...state.instances] }));
       },
@@ -359,7 +359,7 @@ const useSettingsStore = create<{
         language: 'pt',
         enableNotifications: false,
         autoSave: true,
-        userId: 'temporary-user-id'
+        userId: 'admin'
       },
       updateSettings: (updates) => {
         set((state) => ({
@@ -367,7 +367,7 @@ const useSettingsStore = create<{
         }));
       },
     }),
-    { 
+    {
       name: 'severino-settings-storage',
       version: 1
     }
@@ -375,13 +375,13 @@ const useSettingsStore = create<{
 );
 
 // Export all stores
-export { 
-  useNotesStore, 
-  useTasksStore, 
-  useLinksStore, 
-  useIdeasStore, 
-  useChatStore, 
-  usePromptsStore, 
+export {
+  useNotesStore,
+  useTasksStore,
+  useLinksStore,
+  useIdeasStore,
+  useChatStore,
+  usePromptsStore,
   useChipInstancesStore,
   useSettingsStore
 };

@@ -35,29 +35,29 @@ declare module '*/components/ui/card' {
 
 declare module '*/components/ui/dropdown-menu' {
   import { ComponentType, HTMLAttributes, ReactNode } from 'react'
-  
+
   interface DropdownMenuProps extends HTMLAttributes<HTMLDivElement> {
     children: ReactNode
   }
-  
+
   interface DropdownMenuTriggerProps extends HTMLAttributes<HTMLButtonElement> {
     asChild?: boolean
   }
-  
+
   interface DropdownMenuContentProps extends HTMLAttributes<HTMLDivElement> {
     align?: 'start'|'center'|'end'
     sideOffset?: number
   }
-  
+
   interface DropdownMenuItemProps extends HTMLAttributes<HTMLDivElement> {
     disabled?: boolean
   }
-  
+
   interface DropdownMenuRadioGroupProps extends HTMLAttributes<HTMLDivElement> {
     value: string
     onValueChange: (value: string) => void
   }
-  
+
   interface DropdownMenuRadioItemProps extends HTMLAttributes<HTMLDivElement> {
     value: string
     disabled?: boolean
@@ -75,12 +75,12 @@ declare module '*/components/ui/dropdown-menu' {
 
 declare module '*/components/ui/dialog' {
   import { ComponentType, HTMLAttributes, ReactNode } from 'react'
-  
+
   interface DialogProps extends HTMLAttributes<HTMLDivElement> {
     open?: boolean
     onOpenChange?: (open: boolean) => void
   }
-  
+
   interface DialogContentProps extends HTMLAttributes<HTMLDivElement> {
     forceMount?: boolean
   }
@@ -112,7 +112,7 @@ declare module '*/lib/utils' {
 
 // Store type declarations
 declare module '*/store/*' {
-  export * from '@/types/supabase'
+  export * from '@/types'
 }
 
 // Hooks
@@ -135,5 +135,5 @@ interface Window {
   [key: string]: unknown
 }
 
-// Export Supabase types
-export * from '@/types/supabase'
+// Export types
+export * from '@/types'

@@ -1,218 +1,91 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase } from '../integrations/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
+
+// Senha mestra para acesso ao sistema
+const MASTER_PASSWORD = 'severino123';
 
 type AuthError = { error: Error | null };
 
-interface AuthStateBase {
+interface AuthState {
   isAuthenticated: boolean;
-  user: User | null;
-  session: Session | null;
+  userId: string;
   loading: boolean;
-}
-
-interface AuthActions {
-  login: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, username?: string) => Promise<AuthError>;
-  signIn: (emailOrUsername: string, password: string, isUsername?: boolean) => Promise<AuthError>;
-  logout: () => Promise<void>;
-  refreshSession: () => Promise<void>;
-}
-
-type AuthState = AuthStateBase & AuthActions;
-
-interface PersistedAuthState {
-  isAuthenticated: boolean;
-  user: User | null;
-  session: Session | null;
+  login: (password: string) => Promise<AuthError>;
+  logout: () => void;
+  checkAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       isAuthenticated: false,
-      user: null,
-      session: null,
-      loading: true,
-      
-      login: async (email: string, password: string) => {
+      userId: 'admin',
+      loading: true, // Começa como true para evitar flash de conteúdo não autenticado
+
+      login: async (password: string) => {
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          });
-          
-          if (error) throw error;
-          
-          if (data.session) {
+          // Verificar se a senha corresponde à senha mestra
+          if (password === MASTER_PASSWORD) {
             set({
               isAuthenticated: true,
-              user: data.user,
-              session: data.session,
+              loading: false,
             });
+            return { error: null };
+          } else {
+            return { error: new Error('Senha incorreta') };
           }
         } catch (error) {
-          console.error('Error during login:', error);
-          throw error;
+          console.error('Erro durante o login:', error);
+          return { error: error instanceof Error ? error : new Error(String(error)) };
         }
       },
-      
-      signUp: async (email, password, username) => {
-        try {
-          const options = username 
-            ? { data: { username } } 
-            : undefined;
-            
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options
-          });
-          
-          if (error) return { error: error as Error };
-          
-          if (data.session) {
-            if (username) {
-              const { error: profileError } = await supabase.from('profiles').upsert({
-                id: data.user.id,
-                username,
-                updated_at: new Date().toISOString(),
+
+      logout: () => {
+        set({
+          isAuthenticated: false,
+          loading: false,
+        });
+      },
+
+      checkAuth: () => {
+        // Verifica se o usuário está autenticado no localStorage
+        const storedState = localStorage.getItem('severino-auth-storage');
+
+        if (storedState) {
+          try {
+            const parsedState = JSON.parse(storedState);
+
+            // Se o estado armazenado indica que o usuário está autenticado, mantém a autenticação
+            if (parsedState.state && parsedState.state.isAuthenticated) {
+              set({
+                isAuthenticated: true,
+                loading: false,
               });
-              
-              if (profileError) {
-                console.error('Error creating profile:', profileError);
-              }
+              return;
             }
-            
-            set({
-              isAuthenticated: true,
-              user: data.user,
-              session: data.session,
-            });
+          } catch (e) {
+            console.error('Erro ao analisar estado armazenado:', e);
           }
-          
-          return { error: null };
-        } catch (error) {
-          console.error('Error during sign up:', error);
-          return { error: error instanceof Error ? error : new Error(String(error)) };
         }
-      },
-      
-      signIn: async (emailOrUsername, password, isUsername = false) => {
-        try {
-          if (isUsername) {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('username', emailOrUsername)
-              .single();
-              
-            if (profileError || !profileData) {
-              return { error: new Error('Usuário não encontrado') };
-            }
-            
-            const { data, error } = await supabase.auth.signInWithPassword({
-              email: emailOrUsername,
-              password,
-            });
-            
-            if (error) return { error: error as Error };
-            
-            set({
-              isAuthenticated: true,
-              user: data.user,
-              session: data.session,
-            });
-            
-            return { error: null };
-          } else {
-            const { data, error } = await supabase.auth.signInWithPassword({
-              email: emailOrUsername,
-              password,
-            });
-            
-            if (error) return { error: error as Error };
-            
-            set({
-              isAuthenticated: true,
-              user: data.user,
-              session: data.session,
-            });
-            
-            return { error: null };
-          }
-        } catch (error) {
-          console.error('Error during sign in:', error);
-          return { error: error instanceof Error ? error : new Error(String(error)) };
-        }
-      },
-      
-      logout: async () => {
-        try {
-          await supabase.auth.signOut();
-          set({
-            isAuthenticated: false,
-            user: null,
-            session: null,
-          });
-        } catch (error) {
-          console.error('Error during logout:', error);
-        }
-      },
-      
-      refreshSession: async () => {
-        try {
-          const { data } = await supabase.auth.getSession();
-          const session = data.session;
-          
-          if (session) {
-            set({
-              isAuthenticated: true,
-              user: session.user,
-              session,
-              loading: false,
-            });
-          } else {
-            set({
-              isAuthenticated: false,
-              user: null,
-              session: null,
-              loading: false,
-            });
-          }
-        } catch (error) {
-          console.error('Error refreshing session:', error);
-          set({
-            loading: false,
-          });
-        }
+
+        // Se não houver estado armazenado ou o usuário não estiver autenticado
+        set({
+          isAuthenticated: false,
+          loading: false,
+        });
       },
     }),
     {
       name: 'severino-auth-storage',
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
-        user: state.user,
-        session: state.session
-      })
+        userId: state.userId,
+      }),
     }
   )
 );
 
+// Inicializa a verificação de autenticação quando o módulo é carregado
 if (typeof window !== 'undefined') {
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (session) {
-      useAuthStore.getState().refreshSession();
-    } else if (event === 'SIGNED_OUT') {
-      useAuthStore.setState({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        loading: false,
-      });
-    }
-  });
-  
-  useAuthStore.getState().refreshSession();
+  useAuthStore.getState().checkAuth();
 }

@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { useNotesStore, useTasksStore, useIdeasStore, useChipInstancesStore } from '../store/dataStore';
-import { 
-  FileText, 
-  CheckSquare, 
-  Lightbulb, 
+import {
+  FileText,
+  CheckSquare,
+  Lightbulb,
   Cpu,
   Calendar,
   Clock,
@@ -26,32 +26,40 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
 
-  const pendingTasks = tasks.filter(task => task.status === 'pending');
-  const inProgressTasks = tasks.filter(task => task.status === 'in-progress');
-  const completedTasks = tasks.filter(task => task.status === 'completed');
-  
-  const activeChips = instances.filter(instance => instance.status === 'active');
-  
+  // Memoize filtered and sorted data to prevent unnecessary recalculations
+  const pendingTasks = useMemo(() => tasks.filter(task => task.status === 'pending'), [tasks]);
+  const inProgressTasks = useMemo(() => tasks.filter(task => task.status === 'in-progress'), [tasks]);
+  const completedTasks = useMemo(() => tasks.filter(task => task.status === 'completed'), [tasks]);
+
+  const activeChips = useMemo(() => instances.filter(instance => instance.status === 'active'), [instances]);
+
   // Calculate due tasks for today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  
-  const dueTodayTasks = tasks.filter(task => {
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
+
+  const dueTodayTasks = useMemo(() => tasks.filter(task => {
     const taskDate = new Date(task.dueDate);
     taskDate.setHours(0, 0, 0, 0);
     return taskDate.getTime() === today.getTime() && task.status !== 'completed';
-  });
+  }), [tasks, today]);
 
   // Latest data
-  const latestNotes = [...notes].sort((a, b) => 
-    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  ).slice(0, 3);
-  
-  const latestIdeas = [...ideas].sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  ).slice(0, 3);
+  const latestNotes = useMemo(() =>
+    [...notes]
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, 3),
+    [notes]
+  );
+
+  const latestIdeas = useMemo(() =>
+    [...ideas]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 3),
+    [ideas]
+  );
 
   const cardBgClass = theme === 'dark' ? 'bg-severino-gray' : 'bg-white';
   const cardBorderClass = theme === 'dark' ? 'border-severino-lightgray' : 'border-gray-200';
@@ -60,7 +68,7 @@ const Dashboard = () => {
     <AppLayout>
       <div className="animate-fadeIn">
         <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-        
+
         {/* Quick Actions */}
         <div className="mb-8">
           <div className="terminal-header mb-3">
@@ -70,54 +78,54 @@ const Dashboard = () => {
             <span className="terminal-prompt">available_actions</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <Button 
+            <Button
               onClick={() => navigate('/notes')}
-              variant="outline" 
+              variant="outline"
               className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
             >
               <FileText className="h-6 w-6 mb-2 text-severino-pink" />
               <span className="text-xs">Notas</span>
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => navigate('/tasks')}
-              variant="outline" 
+              variant="outline"
               className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
             >
               <CheckSquare className="h-6 w-6 mb-2 text-severino-pink" />
               <span className="text-xs">Tarefas</span>
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => navigate('/chat')}
-              variant="outline" 
+              variant="outline"
               className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
             >
               <MessageSquare className="h-6 w-6 mb-2 text-severino-pink" />
               <span className="text-xs">Chat</span>
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => navigate('/farm')}
-              variant="outline" 
+              variant="outline"
               className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
             >
               <Cpu className="h-6 w-6 mb-2 text-severino-pink" />
               <span className="text-xs">FARM</span>
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => navigate('/ideas')}
-              variant="outline" 
+              variant="outline"
               className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
             >
               <Lightbulb className="h-6 w-6 mb-2 text-severino-pink" />
               <span className="text-xs">Ideias</span>
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => navigate('/settings')}
-              variant="outline" 
+              variant="outline"
               className={`h-auto flex flex-col items-center justify-center py-4 ${cardBgClass} hover:bg-severino-pink/10`}
             >
               <Webhook className="h-6 w-6 mb-2 text-severino-pink" />
@@ -125,7 +133,7 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
-        
+
         <div className="terminal-command mb-4">
           <span className="terminal-prompt">system_status</span>
         </div>
@@ -143,7 +151,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-400">Tarefas Pendentes</CardTitle>
@@ -157,7 +165,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-400">Ideias Registradas</CardTitle>
@@ -171,7 +179,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-400">Chips Ativos</CardTitle>
@@ -192,7 +200,7 @@ const Dashboard = () => {
           <Card className={`${cardBgClass} ${cardBorderClass} lg:col-span-2`}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle>Visão Geral das Tarefas</CardTitle>
-              <button 
+              <button
                 onClick={() => navigate('/tasks')}
                 className="text-xs flex items-center text-severino-pink hover:underline"
               >
@@ -318,7 +326,7 @@ const Dashboard = () => {
               <p className="text-sm">
                 Configure a integração com a Evolution API para automação de WhatsApp e comunicação via webhooks.
               </p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Card className="bg-severino-lightgray border-none">
                   <CardContent className="p-4">
@@ -327,9 +335,9 @@ const Dashboard = () => {
                       <div className="w-2 h-2 rounded-full bg-green-400"></div>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">Receba eventos do WhatsApp em tempo real</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="w-full text-xs"
                       onClick={() => navigate('/settings')}
                     >
@@ -337,7 +345,7 @@ const Dashboard = () => {
                     </Button>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="bg-severino-lightgray border-none">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
@@ -345,9 +353,9 @@ const Dashboard = () => {
                       <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">Gerencie instâncias de WhatsApp</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="w-full text-xs"
                       onClick={() => navigate('/farm')}
                     >
@@ -355,7 +363,7 @@ const Dashboard = () => {
                     </Button>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="bg-severino-lightgray border-none">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
@@ -363,9 +371,9 @@ const Dashboard = () => {
                       <div className="w-2 h-2 rounded-full bg-blue-400"></div>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">Configure sua chave de API</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="w-full text-xs"
                       onClick={() => navigate('/settings')}
                     >
@@ -383,7 +391,7 @@ const Dashboard = () => {
           <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle>Anotações Recentes</CardTitle>
-              <button 
+              <button
                 onClick={() => navigate('/notes')}
                 className="text-xs flex items-center text-severino-pink hover:underline"
               >
@@ -416,7 +424,7 @@ const Dashboard = () => {
           <Card className={`${cardBgClass} ${cardBorderClass}`}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle>Ideias Recentes</CardTitle>
-              <button 
+              <button
                 onClick={() => navigate('/ideas')}
                 className="text-xs flex items-center text-severino-pink hover:underline"
               >

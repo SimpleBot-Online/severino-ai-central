@@ -1,42 +1,101 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Cyberpunk theme custom styles */
+
+/* Cyberpunk grid background */
+.cyberpunk-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(0, 255, 200, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 200, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Cyberpunk scanline effect */
+.cyberpunk-scanline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.5) 50%);
+  background-size: 100% 4px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.15;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Cyberpunk box with glowing border */
+.cyberpunk-box {
+  background-color: rgba(15, 15, 20, 0.9);
+  border: 1px solid rgba(0, 255, 200, 0.3);
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.2), inset 0 0 10px rgba(0, 255, 200, 0.1);
 }
 
-.card {
-  padding: 2em;
+/* Cyberpunk terminal */
+.cyberpunk-terminal {
+  background-color: rgba(10, 10, 15, 0.95);
+  border: 1px solid rgba(0, 255, 200, 0.2);
+  font-family: 'IBM Plex Mono', monospace;
 }
 
-.read-the-docs {
-  color: #888;
+/* Cyberpunk glow text */
+.cyberpunk-glow {
+  text-shadow: 0 0 5px rgba(0, 255, 200, 0.7), 0 0 10px rgba(0, 255, 200, 0.5);
+}
+
+/* Custom input styles */
+.severino-input {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  border: 1px solid rgba(0, 255, 200, 0.3) !important;
+  color: rgba(0, 255, 200, 0.9) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.severino-input:focus {
+  border-color: rgba(0, 255, 200, 0.7) !important;
+  box-shadow: 0 0 0 2px rgba(0, 255, 200, 0.2) !important;
+}
+
+/* Custom button styles */
+.severino-button {
+  background-color: rgba(0, 255, 200, 0.2) !important;
+  border: 1px solid rgba(0, 255, 200, 0.5) !important;
+  color: rgba(0, 255, 200, 1) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  transition: all 0.2s ease !important;
+}
+
+.severino-button:hover {
+  background-color: rgba(0, 255, 200, 0.3) !important;
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.3) !important;
+}
+
+.severino-button-secondary {
+  background-color: transparent !important;
+  border: 1px solid rgba(0, 255, 200, 0.3) !important;
+  color: rgba(0, 255, 200, 0.8) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.severino-button-secondary:hover {
+  background-color: rgba(0, 255, 200, 0.1) !important;
+  border-color: rgba(0, 255, 200, 0.5) !important;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
 }

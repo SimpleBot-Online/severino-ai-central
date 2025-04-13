@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Copy, CheckCheck, Terminal, Plus, X, Edit, Save, Check } from "lucide-react";
+import { Copy, CheckCheck, Terminal, Plus, X, Edit, Save, Check, ChevronDown, Menu, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import AppLayout from "@/components/Layout/AppLayout";
@@ -31,6 +31,7 @@ interface ChatStore {
   addMessage: (tabId: string, message: Message) => void;
   setTabInitialized: (tabId: string) => void;
   updateTabName: (tabId: string, name: string) => void;
+  clearMessages: (tabId: string) => void;
 }
 
 const useChatStore = create<ChatStore>()(
@@ -50,12 +51,15 @@ const useChatStore = create<ChatStore>()(
         // Don't remove the last tab
         if (state.tabs.length <= 1) return state;
         
-        // If removing active tab, switch to the first tab
+        // Find the previous tab or the first tab if we're removing the first
+        const currentIndex = state.tabs.findIndex(tab => tab.id === id);
+        const newActiveId = currentIndex > 0 
+          ? state.tabs[currentIndex - 1].id 
+          : (state.tabs.length > 1 ? state.tabs.find(t => t.id !== id)?.id : state.tabs[0].id);
+        
         return {
           tabs: state.tabs.filter((tab) => tab.id !== id),
-          activeTabId: state.activeTabId === id ? 
-            (state.tabs.find(t => t.id !== id)?.id || state.tabs[0].id) : 
-            state.activeTabId,
+          activeTabId: state.activeTabId === id ? newActiveId : state.activeTabId,
         };
       }),
       addMessage: (tabId, message) => set((state) => ({
@@ -79,6 +83,13 @@ const useChatStore = create<ChatStore>()(
             : tab
         ),
       })),
+      clearMessages: (tabId) => set((state) => ({
+        tabs: state.tabs.map((tab) =>
+          tab.id === tabId
+            ? { ...tab, messages: [], initialized: false }
+            : tab
+        ),
+      })),
     }),
     {
       name: 'severino-chat-storage',
@@ -89,16 +100,36 @@ const useChatStore = create<ChatStore>()(
 function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
   const [displayText, setDisplayText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const intervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Reset when text changes
+    setDisplayText("");
+    setCurrentIndex(0);
+  }, [text]);
 
   useEffect(() => {
     if (currentIndex < text.length) {
-      const timeout = setTimeout(() => {
+      // Use a variable interval to type faster for longer texts
+      const typingSpeed = text.length > 100 ? 10 : 20;
+      
+      intervalRef.current = window.setTimeout(() => {
         setDisplayText(prev => prev + text[currentIndex]);
         setCurrentIndex(prev => prev + 1);
-      }, 20); // Slightly faster typing speed
-      return () => clearTimeout(timeout);
+      }, typingSpeed);
+      
+      return () => {
+        if (intervalRef.current !== null) {
+          clearTimeout(intervalRef.current);
+        }
+      };
     } else if (onComplete) {
-      onComplete();
+      // Slight delay before calling onComplete
+      const completeTimeout = setTimeout(() => {
+        onComplete();
+      }, 100);
+      
+      return () => clearTimeout(completeTimeout);
     }
   }, [currentIndex, text, onComplete]);
 
@@ -115,6 +146,7 @@ export default function Chatbot() {
     addMessage,
     setTabInitialized,
     updateTabName,
+    clearMessages,
   } = useChatStore();
 
   const [newMessage, setNewMessage] = useState("");
@@ -127,9 +159,39 @@ export default function Chatbot() {
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editedTabName, setEditedTabName] = useState("");
   const [autoScroll, setAutoScroll] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId) || tabs[0];
   const messages = useMemo(() => activeTab?.messages || [], [activeTab?.messages]);
+
+  // Handle fullscreen mode
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      if (chatContainerRef.current?.requestFullscreen) {
+        chatContainerRef.current.requestFullscreen()
+          .then(() => setIsFullscreen(true))
+          .catch(err => console.error(err));
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen()
+          .then(() => setIsFullscreen(false))
+          .catch(err => console.error(err));
+      }
+    }
+  }, []);
+
+  // Listen for fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   // Fixed scroll to bottom function with better behavior
   const scrollToBottom = useCallback((force = false) => {
@@ -168,7 +230,16 @@ export default function Chatbot() {
   // Scroll when tab changes
   useEffect(() => {
     scrollToBottom(true);
+    // Close mobile menu when changing tabs
+    setIsMobileMenuOpen(false);
   }, [activeTabId, scrollToBottom]);
+
+  // Focus input when tab changes
+  useEffect(() => {
+    if (textareaRef.current && !isTyping) {
+      textareaRef.current.focus();
+    }
+  }, [activeTabId, isTyping]);
 
   const initializingRef = useRef<{ [key: string]: boolean }>({});
 
@@ -248,6 +319,7 @@ export default function Chatbot() {
       sendingRef.current = true;
       lastTimestampRef.current = now;
       setIsTyping(true);
+      setAutoScroll(true); // Enable auto-scroll when sending a new message
 
       // Check if we have a cached response for this message
       const cachedResponse = sessionStorage.getItem(`chat_response_${message.trim()}`);
@@ -372,6 +444,9 @@ export default function Chatbot() {
       if (!isTyping) {
         handleSend();
       }
+    } else if (e.key === "Enter" && e.shiftKey) {
+      // Allow line breaks with Shift+Enter
+      setNewMessage(prev => prev + "\n");
     }
   }, [handleSend, isTyping]);
 
@@ -396,6 +471,14 @@ export default function Chatbot() {
     setAutoScroll(true);
   };
 
+  // Reset current chat
+  const handleResetChat = () => {
+    if (window.confirm("Tem certeza que deseja limpar este terminal? Isso irá reiniciar a conversa.")) {
+      clearMessages(activeTabId);
+      iniciarIntro();
+    }
+  };
+
   // Auto-adjust textarea height
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
@@ -404,16 +487,39 @@ export default function Chatbot() {
     if (!textarea) return;
     
     textarea.style.height = 'auto';
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+    const newHeight = Math.min(textarea.scrollHeight, 120);
+    textarea.style.height = `${newHeight}px`;
   }, []);
 
   useEffect(() => {
     adjustTextareaHeight();
   }, [newMessage, adjustTextareaHeight]);
 
+  // Accessibility improvements
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (editingTabId) {
+          setEditingTabId(null);
+        } else if (isMobileMenuOpen) {
+          setIsMobileMenuOpen(false);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [editingTabId, isMobileMenuOpen]);
+
   return (
     <AppLayout>
-      <div className="relative flex flex-col flex-1 h-[calc(100vh-5rem)] p-4 overflow-hidden bg-cyber-dark">
+      <div 
+        ref={chatContainerRef}
+        className={cn(
+          "relative flex flex-col w-full h-screen md:h-[calc(100vh-2rem)] p-2 md:p-4 overflow-hidden bg-cyber-dark",
+          isFullscreen && "fixed inset-0 z-50"
+        )}
+      >
         {/* Animated cyberpunk background */}
         <div className="fixed inset-0 z-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-cyber-dark/80 via-cyber-dark to-cyber-dark/80" />
@@ -422,34 +528,120 @@ export default function Chatbot() {
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 blur-3xl rounded-full transform translate-x-1/2 translate-y-1/2 animate-pulse" />
         </div>
 
-        <div className="relative z-10 flex flex-col h-full w-full max-w-5xl mx-auto overflow-hidden rounded-lg border border-cyan-500/50 bg-gradient-to-b from-black/95 to-cyber-dark/95 backdrop-blur-md shadow-lg shadow-cyan-500/20">
-          <div className="border-b border-cyan-500/50 bg-black/80 px-4 py-3">
+        <div className="relative z-10 flex flex-col h-full w-full max-w-7xl mx-auto overflow-hidden rounded-lg border border-cyan-500/50 bg-gradient-to-b from-black/95 to-cyber-dark/95 backdrop-blur-md shadow-lg shadow-cyan-500/20">
+          <div className="border-b border-cyan-500/50 bg-black/80 px-2 sm:px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Terminal className="h-5 w-5 text-cyan-400" />
-                <h2 className="text-lg font-mono font-bold text-cyan-400 tracking-wide">
-                  SEVERINO CEO TERMINAL v3.1
+                <h2 className="text-base sm:text-lg font-mono font-bold text-cyan-400 tracking-wide">
+                  SEVERINO CEO TERMINAL v4.0
                 </h2>
               </div>
-              <div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="border-cyan-500/30 hover:border-cyan-500/80 bg-black/60 text-cyan-400 hover:bg-cyan-950/30"
+                  onClick={toggleFullscreen}
+                  aria-label={isFullscreen ? "Sair do modo de tela cheia" : "Entrar no modo de tela cheia"}
+                >
+                  <Maximize className="h-4 w-4" />
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-cyan-500/30 hover:border-cyan-500/80 bg-black/60 text-cyan-400 hover:bg-cyan-950/30"
+                  className="hidden sm:flex border-cyan-500/30 hover:border-cyan-500/80 bg-black/60 text-cyan-400 hover:bg-cyan-950/30"
                   onClick={() => addTab()}
                 >
-                  <Plus className="h-4 w-4 mr-1" /> Novo Terminal
+                  <Plus className="h-4 w-4 mr-1" /> Novo
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="sm:hidden border-cyan-500/30 hover:border-cyan-500/80 bg-black/60 text-cyan-400 hover:bg-cyan-950/30"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  aria-expanded={isMobileMenuOpen}
+                  aria-label="Abrir menu"
+                >
+                  <Menu className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           </div>
+
+          {/* Mobile menu */}
+          {isMobileMenuOpen && (
+            <div className="sm:hidden border-b border-cyan-500/50 bg-black/90 p-3 animate-fadeIn">
+              <div className="flex flex-col space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-between border-cyan-500/30 hover:border-cyan-500/80 bg-black/60 text-cyan-400 hover:bg-cyan-950/30"
+                  onClick={() => {
+                    addTab();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  <span className="flex items-center">
+                    <Plus className="h-4 w-4 mr-2" /> Novo Terminal
+                  </span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-between border-cyan-500/30 hover:border-cyan-500/80 bg-black/60 text-cyan-400 hover:bg-cyan-950/30"
+                  onClick={() => {
+                    handleResetChat();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  <span className="flex items-center">
+                    <X className="h-4 w-4 mr-2" /> Limpar Terminal
+                  </span>
+                </Button>
+              </div>
+              <div className="mt-3 pt-3 border-t border-cyan-500/20">
+                <p className="text-xs text-cyan-400/70 text-center">Terminais disponíveis</p>
+                <div className="mt-2 flex flex-col space-y-1">
+                  {tabs.map((tab) => (
+                    <Button
+                      key={tab.id}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "justify-between border hover:bg-cyan-950/30",
+                        tab.id === activeTabId
+                          ? "border-cyan-500/70 bg-black/70 text-cyan-400"
+                          : "border-cyan-500/30 bg-black/40 text-cyan-400/70"
+                      )}
+                      onClick={() => {
+                        setActiveTabId(tab.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <span className="truncate max-w-[180px]">{tab.name}</span>
+                      {tabs.length > 1 && tab.id === activeTabId && (
+                        <X 
+                          className="h-3 w-3 text-cyan-400/50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeTab(tab.id);
+                          }}
+                        />
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <Tabs 
             value={activeTabId} 
             onValueChange={setActiveTabId}
             className="flex flex-col flex-grow min-h-0"
           >
-            <div className="border-b border-cyan-500/30 bg-black/60 px-2 py-1 overflow-x-auto flex">
+            <div className="hidden sm:flex border-b border-cyan-500/30 bg-black/60 px-2 py-1 overflow-x-auto">
               <TabsList className="h-9 bg-transparent p-0 flex space-x-1">
                 {tabs.map((tab) => (
                   <div key={tab.id} className="flex items-center relative group">
@@ -477,6 +669,7 @@ export default function Chatbot() {
                               }
                               e.stopPropagation();
                             }}
+                            aria-label="Nome do terminal"
                             autoFocus
                           />
                           <Button
@@ -487,13 +680,14 @@ export default function Chatbot() {
                               e.stopPropagation();
                               saveTabName();
                             }}
+                            aria-label="Salvar nome"
                           >
                             <Check className="h-4 w-4" />
                           </Button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1">
-                          {tab.name}
+                        <div className="flex items-center gap-1 max-w-[150px] sm:max-w-[200px]">
+                          <span className="truncate">{tab.name}</span>
                           <Button
                             size="icon"
                             variant="ghost"
@@ -502,6 +696,7 @@ export default function Chatbot() {
                               e.stopPropagation();
                               startEditingTab(tab.id);
                             }}
+                            aria-label="Editar nome do terminal"
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
@@ -517,6 +712,7 @@ export default function Chatbot() {
                           e.stopPropagation();
                           removeTab(tab.id);
                         }}
+                        aria-label="Fechar terminal"
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -524,111 +720,143 @@ export default function Chatbot() {
                   </div>
                 ))}
               </TabsList>
+              <div className="ml-auto flex items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs text-cyan-400/70 hover:text-cyan-400 hover:bg-transparent"
+                  onClick={handleResetChat}
+                  aria-label="Limpar conversa atual"
+                >
+                  Limpar
+                </Button>
+              </div>
             </div>
 
             {tabs.map((tab) => (
-              <TabsContent 
+            <TabsContent 
                 key={tab.id} 
                 value={tab.id}
                 className="flex-grow flex flex-col p-0 m-0 outline-none data-[state=active]:flex-grow relative"
               >
+                {/* Messages container */}
                 <div 
                   ref={messagesContainerRef}
-                  className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-base scrollbar-thin scrollbar-track-black scrollbar-thumb-cyan-500/50"
+                  className="flex-grow p-3 md:p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-cyan-800 scrollbar-track-transparent"
                 >
-                  {tab.messages.map((msg, i) => (
-                    <div
-                      key={msg.id}
-                      className={`group flex animate-fadeIn ${msg.isUser ? 'justify-end' : 'justify-start'}`}
-                    >
+                  <div className="flex flex-col space-y-4 pb-4">
+                    {messages.map((message, index) => (
                       <div
-                        className={`relative max-w-[90%] rounded-lg px-4 py-3 ${
-                          msg.isUser
-                            ? "bg-cyan-950/30 text-cyan-50 border border-cyan-500/50 shadow-md shadow-cyan-500/10"
-                            : "bg-black/60 text-cyan-50 border border-cyan-500/30 shadow-md shadow-cyan-500/10"
-                        }`}
+                        key={message.id}
+                        className={cn(
+                          "flex items-start gap-2 animate-fadeIn",
+                          message.isUser 
+                            ? "justify-end" 
+                            : "justify-start"
+                        )}
                       >
-                        <div className="flex items-start gap-3">
-                          <span className={cn(
-                            "select-none text-lg font-bold",
-                            msg.isUser ? "text-cyan-400" : "text-green-500"
-                          )}>
-                            {msg.isUser ? '>' : '$'}
-                          </span>
-                          <span className="leading-relaxed tracking-wide whitespace-pre-wrap">
-                            {msg.isUser ? (
-                              <span>{msg.text}</span>
-                            ) : (
-                              <TypewriterText 
-                                text={msg.text} 
-                                onComplete={scrollToBottom}
-                              />
-                            )}
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute -right-10 top-0 opacity-0 transition-opacity group-hover:opacity-100 text-cyan-400 hover:text-cyan-300 hover:bg-transparent"
-                          onClick={() => copyMessage(msg.text, i)}
-                        >
-                          {copiedIndex === i ? (
-                            <CheckCheck className="h-4 w-4" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
+                        {!message.isUser && (
+                          <div className="w-8 h-8 rounded-md flex-shrink-0 overflow-hidden bg-gradient-to-br from-cyan-600 to-cyan-900 flex items-center justify-center text-white font-bold">
+                            S
+                          </div>
+                        )}
+                        <div
+                          className={cn(
+                            "relative group rounded-lg max-w-[85%] p-3",
+                            message.isUser
+                              ? "bg-gradient-to-r from-cyan-950/70 to-blue-950/70 text-cyan-100 border border-cyan-500/30"
+                              : "bg-gradient-to-r from-cyan-950/50 to-cyan-900/40 text-cyan-100 border border-cyan-500/50"
                           )}
-                        </Button>
+                        >
+                          {isTyping && index === messages.length - 1 && !message.isUser ? (
+                            <div className="flex space-x-2">
+                              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-75"></div>
+                              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-150"></div>
+                            </div>
+                          ) : (
+                            <div className="text-sm whitespace-pre-wrap break-words">
+                              <TypewriterText 
+                                text={message.text} 
+                                onComplete={message.isUser ? undefined : () => scrollToBottom()}
+                              />
+                            </div>
+                          )}
+                          <button
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => copyMessage(message.text, index)}
+                            aria-label="Copiar mensagem"
+                          >
+                            {copiedIndex === index ? (
+                              <CheckCheck className="h-4 w-4 text-green-400" />
+                            ) : (
+                              <Copy className="h-4 w-4 text-cyan-400/70 hover:text-cyan-400" />
+                            )}
+                          </button>
+                        </div>
+                        {message.isUser && (
+                          <div className="w-8 h-8 rounded-md flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center text-white font-bold">
+                            U
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
-
-                  {isTyping && activeTabId === tab.id && (
-                    <div className="flex items-center gap-2 text-cyan-400 animate-fadeIn">
-                      <span className="text-lg font-bold text-green-500">$</span>
-                      <div className="flex space-x-1 mt-1">
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "0ms" }} />
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "150ms" }} />
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "300ms" }} />
+                    ))}
+                    {isTyping && (
+                      <div className="flex items-start gap-2 animate-fadeIn justify-start">
+                        <div className="w-8 h-8 rounded-md flex-shrink-0 overflow-hidden bg-gradient-to-br from-cyan-600 to-cyan-900 flex items-center justify-center text-white font-bold">
+                          S
+                        </div>
+                        <div className="relative group rounded-lg max-w-[85%] p-3 bg-gradient-to-r from-cyan-950/50 to-cyan-900/40 text-cyan-100 border border-cyan-500/50">
+                          <div className="flex space-x-2">
+                            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-75"></div>
+                            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-150"></div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} className="h-1" />
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
                 </div>
 
-                {/* Scroll to bottom button - appears when not auto-scrolling */}
-                {!autoScroll && (
-                  <Button
+                {/* Show scroll to bottom button when not auto-scrolling */}
+                {!autoScroll && messages.length > 4 && (
+                  <button
+                    className="absolute bottom-20 right-4 bg-black/80 border border-cyan-500/50 rounded-full p-2 text-cyan-400 hover:bg-black hover:border-cyan-500 transition-all animate-bounce"
                     onClick={handleScrollToBottom}
-                    className="absolute bottom-20 right-6 bg-cyan-700/70 hover:bg-cyan-600 text-white rounded-full shadow-md"
-                    size="sm"
+                    aria-label="Rolar para o final da conversa"
                   >
-                    ↓
-                  </Button>
+                    <ChevronDown className="h-5 w-5" />
+                  </button>
                 )}
 
-                <div className="border-t border-cyan-500/30 bg-black/70 p-4">
-                  <div className="flex gap-3 items-center font-mono">
-                    <span className="text-cyan-400 text-lg font-bold select-none">{'>'}</span>
-                    <Textarea
-                      ref={textareaRef}
-                      className="flex-1 bg-black/60 border border-cyan-500/30 focus:border-cyan-500/70 text-cyan-50 placeholder:text-cyan-500/50 focus:outline-none focus:ring-0 resize-none rounded-md px-3 py-2 min-h-[2.5rem] font-sans overflow-hidden"
-                      placeholder="Digite seu comando..."
-                      value={newMessage}
-                      onChange={(e) => {
-                        setNewMessage(e.target.value);
-                        adjustTextareaHeight();
-                      }}
-                      onKeyDown={handleKeyPress}
-                      disabled={isTyping}
-                      rows={1}
-                      style={{ minHeight: '40px', maxHeight: '120px' }}
-                    />
+                {/* Input area */}
+                <div className="flex-shrink-0 p-3 border-t border-cyan-500/30 bg-black/70">
+                  <div className="flex gap-2">
+                    <div className="relative flex-grow">
+                      <Textarea
+                        ref={textareaRef}
+                        value={newMessage}
+                        onChange={(e) => {
+                          setNewMessage(e.target.value);
+                          adjustTextareaHeight();
+                        }}
+                        onKeyDown={handleKeyPress}
+                        placeholder="Digite sua mensagem..."
+                        className="resize-none min-h-[40px] max-h-[120px] bg-black/80 border-cyan-500/50 text-cyan-100 focus:border-cyan-400 focus:ring-cyan-400/20 placeholder:text-cyan-400/50 scrollbar-thin scrollbar-thumb-cyan-800 scrollbar-track-transparent"
+                        disabled={isTyping}
+                      />
+                    </div>
                     <Button
+                      type="submit"
                       onClick={handleSend}
-                      className="shrink-0 bg-gradient-to-r from-cyan-600 to-cyan-500 text-black font-bold hover:opacity-90 border border-cyan-400/50"
                       disabled={isTyping || !newMessage.trim()}
+                      className={cn(
+                        "h-auto self-end bg-gradient-to-r from-cyan-800 to-cyan-900 hover:from-cyan-700 hover:to-cyan-800 text-white border border-cyan-500/50",
+                        "disabled:from-cyan-950 disabled:to-cyan-950 disabled:text-cyan-400/50 disabled:border-cyan-500/20"
+                      )}
                     >
-                      EXECUTAR
+                      Enviar
                     </Button>
                   </div>
                 </div>

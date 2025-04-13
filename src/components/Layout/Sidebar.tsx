@@ -34,8 +34,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
   ];
 
   return (
-    <aside className="flex h-full flex-col border-r bg-card">
-      <div className="flex h-16 items-center justify-between border-b px-4">
+    <aside className="flex h-full flex-col border-r border-green-500/30 bg-black">
+      <div className="flex h-16 items-center justify-between border-b border-green-500/30 px-4">
         <div className={cn("flex items-center gap-2", collapsed && "justify-center")}>
           <img
             alt="Severino Logo"
@@ -43,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
             className="h-8 w-8 object-cover"
           />
           {!collapsed && (
-            <span className="text-lg font-semibold text-foreground">
+            <span className="text-lg font-mono font-semibold text-green-500">
               Severino+OMR
             </span>
           )}
@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
           size="icon"
           onClick={toggleSidebar}
           className={cn(
-            "hidden lg:flex",
+            "hidden lg:flex text-green-500 hover:bg-green-500/10 hover:text-green-400",
             collapsed && "rotate-180",
             "transition-transform duration-200"
           )}
@@ -70,9 +70,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
               to={item.path}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  "flex items-center gap-3 rounded-none px-3 py-2 text-green-500/80 hover:bg-green-500/10 hover:text-green-400 font-mono",
                   "transition-colors duration-200",
-                  (isActive || location.pathname === item.path) && "bg-accent text-accent-foreground",
+                  (isActive || location.pathname === item.path) && "bg-green-500/10 text-green-400 border-l-2 border-green-500",
                   collapsed && "justify-center"
                 )
               }
@@ -85,11 +85,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
         </nav>
       </ScrollArea>
 
-      <div className="border-t p-4">
+      <div className="border-t border-green-500/30 p-4">
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            "w-full justify-start gap-3 text-green-500/80 hover:bg-green-500/10 hover:text-green-400 font-mono",
             collapsed && "justify-center"
           )}
           onClick={logout}
@@ -104,6 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="text-green-500"
           >
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />

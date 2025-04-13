@@ -158,3 +158,84 @@
   box-shadow: 0 0 15px rgba(0, 255, 200, 0.2);
   backdrop-filter: blur(5px);
 }
+
+/* Terminal specific elements */
+.terminal-effect {
+  position: relative;
+  animation: terminal-flicker 10s infinite;
+}
+
+.terminal-header {
+  @apply bg-black/80 border-b border-green-500/30 p-2 text-green-400 font-mono text-sm;
+  position: relative;
+}
+
+.terminal-header::before {
+  content: "severino:~$ ";
+  @apply text-green-500 mr-2;
+}
+
+.terminal-command {
+  @apply bg-black/50 border-l-2 border-green-500 p-2 my-2 font-mono text-green-300;
+}
+
+.terminal-output {
+  @apply text-green-300 font-mono py-2 border-b border-green-500/20;
+}
+
+.terminal-box {
+  @apply bg-black/80 border border-green-500/30 p-4 relative overflow-hidden;
+}
+
+.terminal-box::before {
+  content: "";
+  @apply absolute inset-0 border border-green-500/20 pointer-events-none;
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background-color: #00FFC8;
+  animation: terminal-blink 1s step-end infinite;
+  vertical-align: middle;
+}
+
+.terminal-prompt {
+  position: relative;
+  padding-left: 1.5rem;
+  color: #00FFC8;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.terminal-prompt::before {
+  content: "> ";
+  position: absolute;
+  left: 0;
+  color: #00FFC8;
+  font-weight: bold;
+}
+
+@keyframes terminal-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes terminal-scan {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 20px;
+  }
+}
+
+@keyframes terminal-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+  }
+  20%, 22%, 24%, 55% {
+    opacity: 0.5;
+  }
+}

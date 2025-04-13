@@ -1,168 +1,356 @@
 
 import React, { useState, useEffect } from 'react';
+import AppLayout from '../components/Layout/AppLayout';
 import { Button } from '@/components/ui/button';
-import { getClients, createClientRecord, updateClient, deleteClient } from '@/services/supabaseService';
-import { Client, ClientStatus, ClientCategory } from '@/types';
-import { useAuthStore } from '@/store/authStore';
-import { toast } from 'sonner';
-import AppLayout from '@/components/Layout/AppLayout';
-import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useToast } from '@/components/ui/use-toast';
+import { Client, ClientStatus } from '@/types';
+import { Plus, Search, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
-const ClientBoard: React.FC = () => {
+const ClientBoard = () => {
   const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { userId } = useAuthStore();
+  const [filteredClients, setFilteredClients] = useState<Client[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [newClient, setNewClient] = useState<Partial<Client>>({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    status: 'active' as ClientStatus,
+  });
+  const { toast } = useToast();
+
+  // Mock data for demonstration
+  useEffect(() => {
+    const mockClients: Client[] = [
+      {
+        id: '1',
+        name: 'João Silva',
+        email: 'joao.silva@example.com',
+        phone: '(11) 98765-4321',
+        company: 'Tech Solutions',
+        status: 'active' as ClientStatus,
+      },
+      {
+        id: '2',
+        name: 'Maria Oliveira',
+        email: 'maria.oliveira@example.com',
+        phone: '(21) 98765-4321',
+        company: 'Digital Marketing',
+        status: 'inactive' as ClientStatus,
+      },
+      {
+        id: '3',
+        name: 'Carlos Santos',
+        email: 'carlos.santos@example.com',
+        phone: '(31) 98765-4321',
+        company: 'Web Design Co.',
+        status: 'lead' as ClientStatus,
+      },
+    ];
+    setClients(mockClients);
+    setFilteredClients(mockClients);
+  }, []);
 
   useEffect(() => {
-    const fetchClients = async () => {
-      if (userId) {
-        try {
-          setLoading(true);
-          const fetchedClients = await getClients(userId);
-          setClients(fetchedClients);
-        } catch (error) {
-          console.error('Error fetching clients:', error);
-          toast.error('Erro ao carregar clientes');
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchClients();
-  }, [userId]);
-
-  const handleCreateClient = async () => {
-    if (userId) {
-      try {
-        const newClient = await createClientRecord(userId, {
-          name: 'Novo Cliente',
-          status: 'prospect' as ClientStatus,
-          category: 'technology' as ClientCategory
-        });
-        setClients(prev => [...prev, newClient]);
-        toast.success('Cliente criado com sucesso');
-      } catch (error) {
-        console.error('Error creating client:', error);
-        toast.error('Erro ao criar cliente');
-      }
-    }
-  };
-
-  const handleUpdateClient = async (client: Client, updates: Partial<Client>) => {
-    try {
-      const updatedClient = await updateClient(client.id, updates);
-      setClients(prev =>
-        prev.map(c => (c.id === client.id ? { ...c, ...updatedClient } : c))
+    if (searchTerm) {
+      const filtered = clients.filter((client) =>
+        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.company.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      toast.success('Cliente atualizado com sucesso');
-    } catch (error) {
-      console.error('Error updating client:', error);
-      toast.error('Erro ao atualizar cliente');
+      setFilteredClients(filtered);
+    } else {
+      setFilteredClients(clients);
+    }
+  }, [searchTerm, clients]);
+
+  const handleAddClient = () => {
+    if (!newClient.name || !newClient.email) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Nome e e-mail são obrigatórios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const clientWithId = {
+      ...newClient,
+      id: Date.now().toString(),
+      status: newClient.status as ClientStatus || 'lead' as ClientStatus,
+    } as Client;
+
+    setClients([...clients, clientWithId]);
+    setNewClient({
+      name: '',
+      email: '',
+      phone: '',
+      company: '',
+      status: 'lead' as ClientStatus,
+    });
+    setIsAddDialogOpen(false);
+    toast({
+      title: "Cliente adicionado",
+      description: "Cliente foi adicionado com sucesso"
+    });
+  };
+
+  const handleEditClient = () => {
+    if (selectedClient) {
+      const updatedClients = clients.map((client) =>
+        client.id === selectedClient.id ? selectedClient : client
+      );
+      setClients(updatedClients);
+      setSelectedClient(null);
+      setIsEditDialogOpen(false);
+      toast({
+        title: "Cliente atualizado",
+        description: "Dados do cliente atualizados com sucesso"
+      });
     }
   };
 
-  const handleDeleteClient = async (clientId: string) => {
-    try {
-      await deleteClient(clientId);
-      setClients(prev => prev.filter(c => c.id !== clientId));
-      toast.success('Cliente excluído com sucesso');
-    } catch (error) {
-      console.error('Error deleting client:', error);
-      toast.error('Erro ao excluir cliente');
-    }
-  };
-
-  const getStatusBadgeClass = (status: ClientStatus) => {
-    switch (status) {
-      case 'prospect':
-        return 'bg-cyan-500/20 text-cyan-400';
-      case 'active':
-        return 'bg-green-500/20 text-green-400';
-      case 'inactive':
-        return 'bg-red-500/20 text-red-400';
-      default:
-        return 'bg-gray-500/20 text-gray-400';
-    }
+  const handleDeleteClient = (id: string) => {
+    const updatedClients = clients.filter((client) => client.id !== id);
+    setClients(updatedClients);
+    toast({
+      title: "Cliente removido",
+      description: "Cliente foi removido com sucesso"
+    });
   };
 
   return (
     <AppLayout>
-      <div className="animate-fadeIn">
-        <div className="terminal-header mb-6">
-          <h1 className="text-2xl font-bold text-cyan-400">Cliente Board</h1>
-          <p className="text-sm text-gray-400 mt-1">Gerencie seus clientes e prospectos</p>
+      <div className="space-y-6 animate-fadeIn terminal-effect">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-mono tracking-tight text-green-500">Quadro de Clientes</h1>
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)}
+            variant="terminal"
+            className="gap-2"
+          >
+            <Plus size={16} />
+            Novo Cliente
+          </Button>
         </div>
 
-        <div className="terminal-command mb-4">
-          <span className="terminal-prompt">client_manager.sh</span>
+        <div className="terminal-box p-4">
+          <div className="terminal-header">
+            sistema > clientes > busca
+          </div>
+          <div className="relative mt-4">
+            <Search className="absolute top-3 left-3 h-4 w-4 text-green-500/50" />
+            <Input
+              placeholder="Buscar cliente..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
 
-        <Button 
-          onClick={handleCreateClient} 
-          className="mb-6 bg-cyber-dark border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500"
-        >
-          <Plus size={16} className="mr-2" />
-          Criar Novo Cliente
-        </Button>
+        <div className="terminal-box overflow-hidden">
+          <div className="terminal-header">
+            sistema > clientes > listagem
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-green-500">Nome</TableHead>
+                  <TableHead className="text-green-500">Email</TableHead>
+                  <TableHead className="text-green-500">Telefone</TableHead>
+                  <TableHead className="text-green-500">Empresa</TableHead>
+                  <TableHead className="text-green-500">Status</TableHead>
+                  <TableHead className="text-green-500 text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.length > 0 ? (
+                  filteredClients.map((client) => (
+                    <TableRow key={client.id} className="border-green-500/20">
+                      <TableCell className="font-mono">{client.name}</TableCell>
+                      <TableCell className="font-mono text-green-400/80">{client.email}</TableCell>
+                      <TableCell className="font-mono">{client.phone}</TableCell>
+                      <TableCell className="font-mono">{client.company}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2 py-1 text-xs font-mono 
+                          ${client.status === 'active' ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 
+                          client.status === 'inactive' ? 'bg-red-500/10 text-red-500 border border-red-500/30' : 
+                          'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'}`}>
+                          {client.status === 'active' ? 'ATIVO' : 
+                          client.status === 'inactive' ? 'INATIVO' : 'LEAD'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setIsEditDialogOpen(true);
+                            }}
+                            className="h-7 w-7 text-green-500 hover:text-green-400 hover:bg-green-500/10"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteClient(client.id)}
+                            className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-green-500/60 font-mono">
+                      Nenhum cliente encontrado. Adicione um novo ou ajuste sua busca.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center h-40">
-            <div className="relative w-12 h-12">
-              <div className="absolute inset-0 border-2 border-t-cyan-500 border-r-cyan-500 border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+      {/* Add Client Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="bg-black border border-green-500/30 text-green-400 font-mono">
+          <DialogHeader>
+            <DialogTitle className="text-green-500 font-mono">Novo Cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm text-green-500/80 terminal-prompt">nome</label>
+              <Input
+                value={newClient.name}
+                onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+                placeholder="Nome completo"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-green-500/80 terminal-prompt">email</label>
+              <Input
+                value={newClient.email}
+                onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                placeholder="email@exemplo.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-green-500/80 terminal-prompt">telefone</label>
+              <Input
+                value={newClient.phone}
+                onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-green-500/80 terminal-prompt">empresa</label>
+              <Input
+                value={newClient.company}
+                onChange={(e) => setNewClient({ ...newClient, company: e.target.value })}
+                placeholder="Nome da empresa"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-green-500/80 terminal-prompt">status</label>
+              <select
+                value={newClient.status as string}
+                onChange={(e) => setNewClient({ ...newClient, status: e.target.value as ClientStatus })}
+                className="bg-black border border-green-500/30 px-3 py-2 text-green-400 w-full font-mono text-sm focus:outline-none focus:border-green-500/70"
+              >
+                <option value="lead">LEAD</option>
+                <option value="active">ATIVO</option>
+                <option value="inactive">INATIVO</option>
+              </select>
             </div>
           </div>
-        ) : clients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-60 border border-dashed border-cyan-500/30 rounded-md p-6 bg-cyber-dark/60">
-            <AlertCircle size={48} className="text-cyan-500/50 mb-4" />
-            <h3 className="text-xl font-semibold text-cyan-400 mb-2">Nenhum Cliente Encontrado</h3>
-            <p className="text-gray-400 text-center mb-4">Adicione seu primeiro cliente para começar a gerenciar seus relacionamentos</p>
-            <Button 
-              onClick={handleCreateClient} 
-              className="bg-cyber-dark border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500"
-            >
-              <Plus size={16} className="mr-2" />
-              Adicionar Cliente
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsAddDialogOpen(false)}>
+              Cancelar
             </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clients.map(client => (
-              <div key={client.id} className="bg-cyber-dark/80 border border-cyan-500/30 rounded-md p-4 hover:border-cyan-500/70 transition-all duration-300">
-                <h2 className="text-lg font-semibold text-cyan-400">{client.name}</h2>
-                <div className="flex items-center mt-2 mb-3">
-                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(client.status)}`}>
-                    {client.status}
-                  </span>
-                  <span className="text-xs px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-400 ml-2">
-                    {client.category}
-                  </span>
-                </div>
-                <div className="flex space-x-2 mt-3">
-                  <Button 
-                    onClick={() => handleUpdateClient(client, { name: 'Cliente Atualizado' })} 
-                    variant="outline" 
-                    size="sm"
-                    className="bg-transparent border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
-                  >
-                    <Edit size={14} className="mr-1" />
-                    Editar
-                  </Button>
-                  <Button 
-                    onClick={() => handleDeleteClient(client.id)} 
-                    variant="outline" 
-                    size="sm"
-                    className="bg-transparent border border-red-500/30 text-red-400 hover:bg-red-500/10"
-                  >
-                    <Trash2 size={14} className="mr-1" />
-                    Excluir
-                  </Button>
-                </div>
+            <Button onClick={handleAddClient} variant="terminal">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Client Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="bg-black border border-green-500/30 text-green-400 font-mono">
+          <DialogHeader>
+            <DialogTitle className="text-green-500 font-mono">Editar Cliente</DialogTitle>
+          </DialogHeader>
+          {selectedClient && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm text-green-500/80 terminal-prompt">nome</label>
+                <Input
+                  value={selectedClient.name}
+                  onChange={(e) => setSelectedClient({ ...selectedClient, name: e.target.value })}
+                />
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <div className="space-y-2">
+                <label className="text-sm text-green-500/80 terminal-prompt">email</label>
+                <Input
+                  value={selectedClient.email}
+                  onChange={(e) => setSelectedClient({ ...selectedClient, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-green-500/80 terminal-prompt">telefone</label>
+                <Input
+                  value={selectedClient.phone}
+                  onChange={(e) => setSelectedClient({ ...selectedClient, phone: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-green-500/80 terminal-prompt">empresa</label>
+                <Input
+                  value={selectedClient.company}
+                  onChange={(e) => setSelectedClient({ ...selectedClient, company: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-green-500/80 terminal-prompt">status</label>
+                <select
+                  value={selectedClient.status}
+                  onChange={(e) => setSelectedClient({ ...selectedClient, status: e.target.value as ClientStatus })}
+                  className="bg-black border border-green-500/30 px-3 py-2 text-green-400 w-full font-mono text-sm focus:outline-none focus:border-green-500/70"
+                >
+                  <option value="lead">LEAD</option>
+                  <option value="active">ATIVO</option>
+                  <option value="inactive">INATIVO</option>
+                </select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditClient} variant="terminal">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Atualizar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

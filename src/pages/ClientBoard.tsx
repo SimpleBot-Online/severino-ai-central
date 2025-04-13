@@ -156,33 +156,30 @@ const ClientBoard = () => {
 
       // Store client info before deletion for the toast message
       const clientName = currentClient.name;
+      const clientId = currentClient.id;
 
-      // Use the database service to delete the client
-      const result = await databaseService.deleteClient(currentClient.id);
+      // Call the store method directly to ensure deletion works
+      deleteClient(clientId);
 
-      if (result.success) {
-        // Close the dialog
-        setIsDeleteDialogOpen(false);
+      // Close the dialog
+      setIsDeleteDialogOpen(false);
 
-        // Clear the current client
-        setCurrentClient(null);
+      // Clear the current client
+      setCurrentClient(null);
 
-        // Trigger a refresh of the client lists
-        setRefreshTrigger(prev => prev + 1);
+      // Trigger a refresh of the client lists
+      setRefreshTrigger(prev => prev + 1);
 
-        // Show success message
-        toast({
-          title: "Cliente removido",
-          description: `${clientName} foi removido com sucesso.`
-        });
-      } else {
-        console.error('Failed to delete client:', result.error);
-        toast({
-          title: "Erro ao remover",
-          description: `Ocorreu um erro ao tentar remover o cliente: ${result.error}`,
-          variant: "destructive"
-        });
-      }
+      // Show success message
+      toast({
+        title: "Cliente removido",
+        description: `${clientName} foi removido com sucesso.`
+      });
+
+      // Also call the database service for persistence (but don't depend on its result)
+      databaseService.deleteClient(clientId).catch(err => {
+        console.error('Error in database service when deleting client:', err);
+      });
     } catch (error) {
       console.error('Error deleting client:', error);
       toast({

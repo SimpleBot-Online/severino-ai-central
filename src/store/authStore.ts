@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-// Senha mestra para acesso ao sistema
-const MASTER_PASSWORD = 'severino123';
+import { AUTH, DATABASE } from '@/config';
 
 type AuthError = { error: Error | null };
 
@@ -19,13 +17,13 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       isAuthenticated: false,
-      userId: 'admin',
+      userId: AUTH.DEFAULT_USER_ID,
       loading: true, // Começa como true para evitar flash de conteúdo não autenticado
 
       login: async (password: string) => {
         try {
           // Verificar se a senha corresponde à senha mestra
-          if (password === MASTER_PASSWORD) {
+          if (password === AUTH.MASTER_PASSWORD) {
             set({
               isAuthenticated: true,
               loading: false,
@@ -49,7 +47,7 @@ export const useAuthStore = create<AuthState>()(
 
       checkAuth: () => {
         // Verifica se o usuário está autenticado no localStorage
-        const storedState = localStorage.getItem('severino-auth-storage');
+        const storedState = localStorage.getItem(DATABASE.STORAGE_KEYS.AUTH);
 
         if (storedState) {
           try {
@@ -76,7 +74,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'severino-auth-storage',
+      name: DATABASE.STORAGE_KEYS.AUTH,
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         userId: state.userId,

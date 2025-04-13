@@ -8,6 +8,7 @@ import { useAuthStore } from "./store/authStore";
 import { Loading } from "./components/Loading";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PrivateRouteWithChat from "./components/Layout/PrivateRouteWithChat";
+import NotificationProvider from "./components/NotificationProvider";
 
 // Lazy-loaded page components
 const Index = lazy(() => import("./pages/Index"));
@@ -68,12 +69,13 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <BrowserRouter>
-            <TooltipProvider>
-              <Toaster />
+          <NotificationProvider>
+            <BrowserRouter>
+              <TooltipProvider>
+                <Toaster />
 
-              <Suspense fallback={<Loading />}>
-                <Routes>
+                <Suspense fallback={<Loading />}>
+                  <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
 
@@ -94,10 +96,11 @@ const App = () => {
                   <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 
                   <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </TooltipProvider>
-          </BrowserRouter>
+                  </Routes>
+                </Suspense>
+              </TooltipProvider>
+            </BrowserRouter>
+          </NotificationProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

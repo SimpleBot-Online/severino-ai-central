@@ -1,5 +1,6 @@
 
 import { Settings, Client, FinancialRecord } from '@/types';
+import { DATABASE, AUTH } from '@/config';
 import {
   useNotesStore,
   useTasksStore,
@@ -319,16 +320,16 @@ export async function deleteFinancialRecord(recordId: string) {
 export async function checkAndCreateDatabaseStructure() {
   // Verificar se os stores do Zustand estão inicializados
   const stores = [
-    'severino-notes-storage',
-    'severino-tasks-storage',
-    'severino-links-storage',
-    'severino-ideas-storage',
-    'severino-prompts-storage',
-    'severino-chip-instances-storage',
-    'severino-settings-storage',
-    'severino-auth-storage',
-    'severino-clients-storage',
-    'severino-financial-records-storage'
+    DATABASE.STORAGE_KEYS.NOTES,
+    DATABASE.STORAGE_KEYS.TASKS,
+    DATABASE.STORAGE_KEYS.LINKS,
+    DATABASE.STORAGE_KEYS.IDEAS,
+    DATABASE.STORAGE_KEYS.PROMPTS,
+    DATABASE.STORAGE_KEYS.CHIP_INSTANCES,
+    DATABASE.STORAGE_KEYS.SETTINGS,
+    DATABASE.STORAGE_KEYS.AUTH,
+    DATABASE.STORAGE_KEYS.CLIENTS,
+    DATABASE.STORAGE_KEYS.FINANCIAL_RECORDS
   ];
 
   // Verificar se cada store existe no localStorage

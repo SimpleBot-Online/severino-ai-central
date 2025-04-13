@@ -78,7 +78,7 @@ const FloatingChat: React.FC = () => {
     if (!inputValue.trim() || isLoading) return;
 
     // Check if OpenAI API key is configured
-    if (!settings.openaiApiKey) {
+    if (!settings?.openaiApiKey) {
       showError(
         'API Key não configurada',
         'Configure sua chave da API OpenAI nas configurações para usar o chat.'
@@ -102,7 +102,7 @@ const FloatingChat: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.openaiApiKey}`
+          'Authorization': `Bearer ${settings?.openaiApiKey || ''}`
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
@@ -255,4 +255,5 @@ const FloatingChat: React.FC = () => {
   );
 };
 
+export { FloatingChat };
 export default FloatingChat;

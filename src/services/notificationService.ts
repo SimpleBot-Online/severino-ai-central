@@ -16,7 +16,12 @@ export interface Notification {
 
 // Get notifications state from settings
 const getNotificationsEnabled = () => {
-  return useSettingsStore.getState().settings.enableNotifications;
+  try {
+    return useSettingsStore.getState().settings?.enableNotifications || false;
+  } catch (error) {
+    console.error('Error getting notifications enabled state:', error);
+    return false;
+  }
 };
 
 // Show a toast notification

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { checkAndCreateDatabaseStructure } from '@/services/databaseService';
+import { checkAndCreateDatabaseStructure } from '@/services/databaseInitService';
 
 export function useInitDatabase() {
   const [initialized, setInitialized] = useState(false);

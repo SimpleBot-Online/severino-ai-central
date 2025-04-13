@@ -356,11 +356,11 @@ const useSettingsStore = create<{
         webhookUrl: '',
         evolutionApiKey: '',
         webhookEvolutionUrl: '',
-
         theme: 'dark',
         language: 'pt',
         enableNotifications: false,
         autoSave: true,
+        useSupabase: false,
         userId: 'admin'
       },
       updateSettings: (updates) => {

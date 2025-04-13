@@ -33,10 +33,12 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { updateUserSettings } from '@/services/databaseService';
 import { useAuthStore } from '@/store/authStore';
+import { migrateDataToSupabase } from '@/services/supabaseService';
+import { showSuccess, showError } from '@/services/notificationService';
 
 const Settings = () => {
   const { settings, updateSettings } = useSettingsStore();
-  const { user } = useAuthStore();
+  const { userId } = useAuthStore();
   const { theme, setTheme } = useTheme();
   const [formState, setFormState] = useState({
     openaiApiKey: settings.openaiApiKey || '',
@@ -48,6 +50,7 @@ const Settings = () => {
     language: settings.language || 'pt',
     enableNotifications: settings.enableNotifications || false,
     autoSave: settings.autoSave || true,
+    useSupabase: settings.useSupabase || false,
   });
   const [showOpenAIKey, setShowOpenAIKey] = useState(false);
   const [showEvolutionKey, setShowEvolutionKey] = useState(false);
@@ -62,7 +65,7 @@ const Settings = () => {
     }));
   }, [theme]);
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: string, value: string | boolean | number) => {
     setFormState({
       ...formState,
       [field]: value,
@@ -86,10 +89,10 @@ const Settings = () => {
       updateSettings(formState);
 
       // Save to database if user is authenticated
-      if (user?.id) {
-        await updateUserSettings(user.id, {
+      if (userId) {
+        await updateUserSettings(userId, {
           ...formState,
-          user_id: user.id
+          userId
         });
       }
 
@@ -116,10 +119,11 @@ const Settings = () => {
       webhookUrl: 'https://gen.simplebot.online/webhook/a1b8ac76-841d-4412-911a-7f22ff0d73ff/chat',
       evolutionApiKey: '',
       webhookEvolutionUrl: '',
-      theme: 'dark',
-      language: 'pt',
+      theme: 'dark' as 'dark' | 'light',
+      language: 'pt' as 'pt' | 'en',
       enableNotifications: false,
       autoSave: true,
+      useSupabase: false,
     });
     setTheme('dark');
   };
@@ -466,6 +470,45 @@ const Settings = () => {
                         onCheckedChange={(checked) => handleChange('autoSave', checked)}
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="usesupabase">Usar Banco de Dados Supabase</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Armazenar dados no Supabase em vez de localmente
+                        </p>
+                      </div>
+                      <Switch
+                        id="usesupabase"
+                        checked={formState.useSupabase}
+                        onCheckedChange={(checked) => handleChange('useSupabase', checked)}
+                      />
+                    </div>
+                    {!formState.useSupabase && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 w-full bg-cyber-dark border-green-500/30 text-green-300 hover:bg-green-500/20"
+                        onClick={async () => {
+                          if (userId) {
+                            try {
+                              await migrateDataToSupabase(userId);
+                              handleChange('useSupabase', true);
+                              showSuccess('Migração concluída', 'Seus dados foram migrados com sucesso para o Supabase.');
+                            } catch (error) {
+                              console.error('Erro ao migrar dados:', error);
+                              showError('Erro na migração', 'Ocorreu um erro ao migrar seus dados para o Supabase.');
+                            }
+                          } else {
+                            showError('Erro de autenticação', 'Você precisa estar autenticado para migrar seus dados.');
+                          }
+                        }}
+                      >
+                        Migrar Dados para Supabase
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

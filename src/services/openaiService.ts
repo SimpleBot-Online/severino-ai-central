@@ -15,57 +15,56 @@ interface ChatCompletionResponse {
   }[];
 }
 
-// This is a placeholder service that would connect to your backend
-// In a real implementation, you would not expose your API key in the frontend
-// Instead, you would have a backend service that handles the API calls
+// This is a service that connects to the OpenAI API
+// In a production environment, you would typically handle this through a backend
+// to avoid exposing your API key in the frontend
 
 export async function sendChatMessage(messages: ChatMessage[]): Promise<string> {
   try {
     const settings = useSettingsStore.getState().settings;
     const apiKey = settings?.openaiApiKey;
-    
+
     if (!apiKey) {
-      throw new Error('API key not found. Please configure it in settings.');
+      return 'API key not found. Please configure it in settings. Go to Settings page and add your OpenAI API key.';
     }
-    
-    // In a real implementation, this would be a call to your backend
-    // which would then call the OpenAI API
-    // For now, we'll simulate a response
-    
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const lastMessage = messages[messages.length - 1];
-        resolve(`Isso é uma resposta simulada para: "${lastMessage.content}".\n\nEm uma implementação real, isso seria conectado à API da OpenAI.`);
-      }, 1000);
-    });
-    
-    // Real implementation would look something like this:
-    /*
-    const response = await fetch('https://api.openai.com/v2/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: messages,
-        max_tokens: 1000
-      })
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'Failed to get response from OpenAI');
+
+    // Real implementation using OpenAI API
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um assistente útil e amigável que ajuda com suporte técnico e brainstorming. Seja conciso e direto nas respostas.'
+            },
+            ...messages
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('OpenAI API error:', errorData);
+        return `Error from OpenAI API: ${errorData.error?.message || 'Unknown error'}. Please check your API key and settings.`;
+      }
+
+      const data: ChatCompletionResponse = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error('Error calling OpenAI API:', error);
+      return `Error connecting to OpenAI API. Please check your internet connection and API key configuration.`;
     }
-    
-    const data: ChatCompletionResponse = await response.json();
-    return data.choices[0].message.content;
-    */
-    
+
   } catch (error) {
     console.error('Error in OpenAI service:', error);
-    throw error;
+    return `An unexpected error occurred. Please try again later.`;
   }
 }

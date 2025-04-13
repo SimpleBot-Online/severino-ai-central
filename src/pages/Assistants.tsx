@@ -68,7 +68,7 @@ const Assistants = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.openaiApiKey}`
+          'Authorization': `Bearer ${settings?.openaiApiKey || ''}`
         },
         body: JSON.stringify({
           model: assistantConfig.model,

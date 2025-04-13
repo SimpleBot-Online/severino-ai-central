@@ -1,1 +1,2 @@
-export { default as FloatingChat } from './FloatingChat';
+import FloatingChat from './FloatingChat';
+export default FloatingChat;

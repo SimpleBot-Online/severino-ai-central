@@ -1,14 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient as supabaseCreateClient } from '@supabase/supabase-js';
 import {
   Note, Task, UsefulLink, Idea, Prompt, ChipInstance,
   Settings, Client, FinancialRecord, ClientStatus, ClientCategory
 } from '../types';
 import { showSuccess, showError } from './notificationService';
+import { DATABASE } from '@/config';
 
 // Initialize Supabase client
-const supabaseUrl = 'https://xjiztflszodhvwkomqhf.supabase.co';
-const supabaseKey = process.env.REACT_APP_SUPABASE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = DATABASE.SUPABASE.URL;
+const supabaseKey = DATABASE.SUPABASE.KEY;
+const supabase = supabaseCreateClient(supabaseUrl, supabaseKey);
 
 // User Authentication
 export const signIn = async (email: string, password: string) => {
@@ -244,6 +245,7 @@ const createDefaultSettings = async (userId: string) => {
     language: 'pt',
     enableNotifications: false,
     autoSave: true,
+    useSupabase: false,
     userId
   };
 
@@ -280,7 +282,7 @@ export const getClientsByStatus = async (userId: string, status: ClientStatus) =
   return data as Client[];
 };
 
-export const createClient = async (userId: string, client: { name: string; status: ClientStatus; category: ClientCategory; [key: string]: any }) => {
+export const createClientRecord = async (userId: string, client: { name: string; status: ClientStatus; category: ClientCategory; [key: string]: string | number | boolean | null }) => {
   const { data, error } = await supabase
     .from('clients')
     .insert([{

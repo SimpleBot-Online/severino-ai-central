@@ -72,6 +72,7 @@ export interface Settings {
   enableNotifications: boolean;
   autoSave: boolean;
   userId: string;
+  useSupabase?: boolean;
 }
 
 export interface UserProfile {

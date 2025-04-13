@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/dataStore';
 import { Navigate, useLocation } from 'react-router-dom';
 import FloatingChat from '../FloatingChat';
+import SetApiKey from '../SetApiKey';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -94,8 +95,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </footer>
       </div>
 
+      {/* API Key Setup */}
+      {!settings?.openaiApiKey && <SetApiKey />}
+
       {/* Floating Chat */}
-      {settings.openaiApiKey && location.pathname !== '/chat' && <FloatingChat />}
+      {settings?.openaiApiKey && location.pathname !== '/chat' && <FloatingChat />}
     </div>
   );
 };

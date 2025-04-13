@@ -42,6 +42,20 @@ const Login = () => {
 
     setLoading(true);
     try {
+      // Check if we're in production and no master password is set
+      const isProd = import.meta.env.PROD;
+      const masterPassword = import.meta.env.VITE_MASTER_PASSWORD;
+
+      if (isProd && !masterPassword) {
+        toast({
+          title: "Erro de configuração",
+          description: "A senha mestra não foi configurada no ambiente de produção. Entre em contato com o administrador.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await login(password);
 
       if (error) {

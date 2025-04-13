@@ -1,14 +1,17 @@
+
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Copy, CheckCheck, Terminal, ChevronDown, Plus, X } from "lucide-react";
+import { Copy, CheckCheck, Terminal, ChevronDown, Plus, X, Edit, Save, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import AppLayout from "@/components/Layout/AppLayout";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -34,12 +37,13 @@ interface ChatStore {
   removeTab: (id: string) => void;
   addMessage: (tabId: string, message: Message) => void;
   setTabInitialized: (tabId: string) => void;
+  updateTabName: (tabId: string, name: string) => void;
 }
 
 const useChatStore = create<ChatStore>()(
   persist(
     (set) => ({
-      tabs: [{ id: "1", name: "Main Terminal", messages: [], initialized: false }],
+      tabs: [{ id: "1", name: "Terminal Principal", messages: [], initialized: false }],
       activeTabId: "1",
       setActiveTabId: (id) => set({ activeTabId: id }),
       addTab: () => set((state) => {
@@ -51,7 +55,7 @@ const useChatStore = create<ChatStore>()(
       }),
       removeTab: (id) => set((state) => ({
         tabs: state.tabs.filter((tab) => tab.id !== id),
-        activeTabId: state.activeTabId === id ? "1" : state.activeTabId,
+        activeTabId: state.activeTabId === id ? (state.tabs[0]?.id || "1") : state.activeTabId,
       })),
       addMessage: (tabId, message) => set((state) => ({
         tabs: state.tabs.map((tab) =>
@@ -64,6 +68,13 @@ const useChatStore = create<ChatStore>()(
         tabs: state.tabs.map((tab) =>
           tab.id === tabId
             ? { ...tab, initialized: true }
+            : tab
+        ),
+      })),
+      updateTabName: (tabId, name) => set((state) => ({
+        tabs: state.tabs.map((tab) =>
+          tab.id === tabId
+            ? { ...tab, name }
             : tab
         ),
       })),
@@ -83,7 +94,7 @@ function TypewriterText({ text }: { text: string }) {
       const timeout = setTimeout(() => {
         setDisplayText(prev => prev + text[currentIndex]);
         setCurrentIndex(prev => prev + 1);
-      }, 25); // Adjust speed here
+      }, 25); // Ajuste a velocidade aqui
       return () => clearTimeout(timeout);
     }
   }, [currentIndex, text]);
@@ -100,6 +111,7 @@ export default function Chatbot() {
     removeTab,
     addMessage,
     setTabInitialized,
+    updateTabName,
   } = useChatStore();
 
   const [newMessage, setNewMessage] = useState("");
@@ -108,6 +120,8 @@ export default function Chatbot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const messageSound = useRef(new Audio("/message.mp3"));
+  const [editingTabId, setEditingTabId] = useState<string | null>(null);
+  const [editedTabName, setEditedTabName] = useState("");
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
   const messages = useMemo(() => activeTab?.messages || [], [activeTab?.messages]);
@@ -127,7 +141,7 @@ export default function Chatbot() {
     addMessage(activeTabId, newMessage);
     if (!isUser) {
       messageSound.current.play().catch(() => {
-        // Ignore audio play errors
+        // Ignorar erros de reprodução de áudio
       });
     }
   }, [activeTabId, addMessage]);
@@ -185,7 +199,7 @@ export default function Chatbot() {
   const sendMessage = useCallback(async (message: string) => {
     const now = Date.now();
     if (sendingRef.current || !message.trim() || now - lastTimestampRef.current < 1000) {
-      // If already sending or it's been less than 1 second since last message, queue it
+      // Se já estiver enviando ou se passou menos de 1 segundo desde a última mensagem, coloque na fila
       messageQueueRef.current.push(message);
       return;
     }
@@ -195,11 +209,11 @@ export default function Chatbot() {
       lastTimestampRef.current = now;
       setIsTyping(true);
 
-      // Check if we have a cached response for this message
+      // Verificar se temos uma resposta em cache para esta mensagem
       const cachedResponse = sessionStorage.getItem(`chat_response_${message.trim()}`);
       if (cachedResponse) {
-        console.log('Using cached response');
-        await new Promise(resolve => setTimeout(resolve, 800)); // Small delay to make it feel natural
+        console.log('Usando resposta em cache');
+        await new Promise(resolve => setTimeout(resolve, 800)); // Pequeno atraso para parecer natural
         setIsTyping(false);
         appendMessage(cachedResponse, false);
         return;
@@ -207,7 +221,7 @@ export default function Chatbot() {
 
       const payload = JSON.stringify({ mensagem: message });
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de timeout
 
       try {
         const response = await fetch(
@@ -237,7 +251,7 @@ export default function Chatbot() {
         try {
           responseData = JSON.parse(text) as ApiResponse;
         } catch (e) {
-          console.warn('Failed to parse response as JSON:', e);
+          console.warn('Falha ao analisar resposta como JSON:', e);
         }
 
         if (!response.ok) {
@@ -258,7 +272,7 @@ export default function Chatbot() {
             responseData.resposta ||
             responseData.response;
 
-        // Cache the response for future use
+        // Armazenar a resposta em cache para uso futuro
         if (botResponse) {
           sessionStorage.setItem(`chat_response_${message.trim()}`, botResponse);
         }
@@ -293,7 +307,7 @@ export default function Chatbot() {
     } finally {
       sendingRef.current = false;
 
-      // Process next message in queue if any
+      // Processar a próxima mensagem na fila, se houver
       if (messageQueueRef.current.length > 0) {
         const nextMessage = messageQueueRef.current.shift();
         if (nextMessage) {
@@ -321,153 +335,224 @@ export default function Chatbot() {
     }
   }, [handleSend, isTyping]);
 
+  const startEditingTab = (tabId: string) => {
+    const tab = tabs.find(t => t.id === tabId);
+    if (tab) {
+      setEditingTabId(tabId);
+      setEditedTabName(tab.name);
+    }
+  };
+
+  const saveTabName = () => {
+    if (editingTabId && editedTabName.trim()) {
+      updateTabName(editingTabId, editedTabName.trim());
+      setEditingTabId(null);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="relative flex flex-col flex-1 h-[calc(100vh-5rem)] p-4 overflow-hidden bg-cyber-dark">
-        {/* Animated cyberpunk background */}
+        {/* Fundo cyberpunk animado */}
         <div className="fixed inset-0 z-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-cyber-dark/80 via-cyber-dark to-cyber-dark/80" />
-          <div className="cyberpunk-grid" />
-          <div className="cyberpunk-glow absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 blur-3xl rounded-full transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
-          <div className="cyberpunk-glow absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/20 blur-3xl rounded-full transform translate-x-1/2 translate-y-1/2 animate-pulse" />
+          <div className="bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gNDAgMCBMIDAgMCAwIDQwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMGZmYzgxMCIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPjwvc3ZnPg==')]" className="absolute inset-0 opacity-20" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 blur-3xl rounded-full transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 blur-3xl rounded-full transform translate-x-1/2 translate-y-1/2 animate-pulse" />
         </div>
 
-        <div className="relative z-10 flex flex-col h-full w-full max-w-4xl mx-auto overflow-hidden rounded-lg border border-cyan-500/50 bg-cyber-dark/80 backdrop-blur-sm shadow-lg shadow-cyan-500/20">
-          <div className="border-b border-cyan-500/50 bg-cyber-dark/90 px-4 py-2">
+        <div className="relative z-10 flex flex-col h-full w-full max-w-5xl mx-auto overflow-hidden rounded-lg border border-cyan-500/50 bg-gradient-to-b from-black/95 to-cyber-dark/95 backdrop-blur-md shadow-lg shadow-cyan-500/20">
+          <div className="border-b border-cyan-500/50 bg-black/80 px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Terminal className="h-5 w-5 text-cyan-500" />
-                <h2 className="text-lg font-mono font-semibold text-cyan-500">
-                  Severino Nexus v2.0
+                <Terminal className="h-5 w-5 text-cyan-400" />
+                <h2 className="text-lg font-mono font-bold text-cyan-400 tracking-wide">
+                  SEVERINO CEO TERMINAL v3.0
                 </h2>
               </div>
-              <div className="flex items-center gap-2">
+              <div>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-cyan-500 hover:bg-cyan-500/20"
+                  variant="outline"
+                  size="sm"
+                  className="border-cyan-500/30 hover:border-cyan-500/80 bg-black/60 text-cyan-400 hover:bg-cyan-950/30"
                   onClick={() => addTab()}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 mr-1" /> Novo Terminal
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-cyan-500 hover:bg-cyan-500/20">
-                      <span className="mr-2">Terminal {activeTabId}</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-cyber-dark border-cyan-500/50">
-                    {tabs.map(tab => (
-                      <DropdownMenuItem
-                        key={tab.id}
-                        className={cn(
-                          "flex items-center justify-between",
-                          tab.id === activeTabId && "bg-cyan-500/20"
-                        )}
-                        onClick={() => setActiveTabId(tab.id)}
-                      >
-                        <span>{tab.name}</span>
-                        {tabs.length > 1 && (
+              </div>
+            </div>
+          </div>
+
+          <Tabs 
+            value={activeTabId} 
+            onValueChange={setActiveTabId}
+            className="flex flex-col flex-grow min-h-0"
+          >
+            <div className="border-b border-cyan-500/30 bg-black/60 px-2 py-1 overflow-x-auto flex">
+              <TabsList className="h-9 bg-transparent p-0 flex space-x-1">
+                {tabs.map((tab) => (
+                  <div key={tab.id} className="flex items-center relative group">
+                    <TabsTrigger
+                      value={tab.id}
+                      className={cn(
+                        "px-4 py-1.5 rounded-t-md rounded-b-none border border-b-0 transition-all",
+                        tab.id === activeTabId
+                          ? "border-cyan-500/70 bg-black text-cyan-400"
+                          : "border-cyan-500/30 bg-black/40 text-cyan-400/70 hover:bg-black/60"
+                      )}
+                    >
+                      {editingTabId === tab.id ? (
+                        <div className="flex items-center">
+                          <input
+                            type="text"
+                            value={editedTabName}
+                            onChange={(e) => setEditedTabName(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-black border border-cyan-500 text-cyan-400 px-2 py-0.5 rounded w-32 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                saveTabName();
+                              }
+                              e.stopPropagation();
+                            }}
+                            autoFocus
+                          />
                           <Button
-                            variant="ghost"
                             size="icon"
-                            className="h-4 w-4 ml-2 text-cyan-500 hover:bg-cyan-500/20"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-green-500 hover:text-green-400 hover:bg-transparent"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (tabs.length > 1) {
-                                removeTab(tab.id);
-                              }
+                              saveTabName();
                             }}
                           >
-                            <X className="h-3 w-3" />
+                            <Check className="h-4 w-4" />
                           </Button>
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-sm scrollbar-thin scrollbar-track-severino-dark scrollbar-thumb-severino-pink/50">
-            {messages.map((msg, i) => (
-              <div
-                key={msg.id}
-                className={`group flex animate-fadeIn ${msg.isUser ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`relative max-w-[80%] rounded px-3 py-2 ${
-                    msg.isUser
-                      ? "bg-cyan-500/20 text-gray-100 border border-cyan-500/50"
-                      : "bg-cyan-500/10 text-gray-100 border border-cyan-500/50"
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    <span className={cn(
-                      "select-none",
-                      msg.isUser ? "text-cyan-500" : "text-cyan-500"
-                    )}>
-                      {msg.isUser ? '>' : '$'}
-                    </span>
-                    {msg.isUser ? (
-                      <span>{msg.text}</span>
-                    ) : (
-                      <TypewriterText text={msg.text} />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          {tab.name}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-cyan-500 hover:text-cyan-400 hover:bg-transparent"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditingTab(tab.id);
+                            }}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </TabsTrigger>
+                    {tabs.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-black border border-cyan-500/50 text-cyan-400 opacity-0 group-hover:opacity-100 p-0 hover:bg-red-950"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeTab(tab.id);
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute -right-10 top-0 opacity-0 transition-opacity group-hover:opacity-100 text-cyan-500 hover:text-cyan-500/80"
-                    onClick={() => copyMessage(msg.text, i)}
-                  >
-                    {copiedIndex === i ? (
-                      <CheckCheck className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            {isTyping && (
-              <div className="flex items-center gap-2 text-cyan-500 animate-fadeIn">
-                <span>$</span>
-                <div className="flex space-x-1">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "0ms" }} />
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "150ms" }} />
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "300ms" }} />
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="border-t border-cyan-500/50 bg-cyber-dark/90 p-4">
-            <div className="flex gap-2 items-center font-mono">
-              <span className="text-cyan-500 select-none">{'>'}</span>
-              <textarea
-                rows={1}
-                className="flex-1 bg-transparent border-none text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 resize-none"
-                placeholder="Digite seu comando..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-                disabled={isTyping}
-                style={{ minHeight: '24px', maxHeight: '120px' }}
-              />
-              <Button
-                onClick={handleSend}
-                className="shrink-0 bg-gradient-to-r from-severino-pink to-cyan-500 text-white hover:opacity-90"
-                disabled={isTyping || !newMessage.trim()}
-              >
-                Executar
-              </Button>
+                ))}
+              </TabsList>
             </div>
-          </div>
+
+            {tabs.map((tab) => (
+              <TabsContent 
+                key={tab.id} 
+                value={tab.id}
+                className="flex-grow flex flex-col p-0 m-0 outline-none data-[state=active]:flex-grow"
+              >
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-base scrollbar-thin scrollbar-track-black scrollbar-thumb-cyan-500/50">
+                  {tab.messages.map((msg, i) => (
+                    <div
+                      key={msg.id}
+                      className={`group flex animate-fadeIn ${msg.isUser ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`relative max-w-[90%] rounded-lg px-4 py-3 ${
+                          msg.isUser
+                            ? "bg-cyan-950/30 text-cyan-50 border border-cyan-500/50 shadow-md shadow-cyan-500/10"
+                            : "bg-black/60 text-cyan-50 border border-cyan-500/30 shadow-md shadow-cyan-500/10"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className={cn(
+                            "select-none text-lg font-bold",
+                            msg.isUser ? "text-cyan-400" : "text-green-500"
+                          )}>
+                            {msg.isUser ? '>' : '$'}
+                          </span>
+                          <span className="leading-relaxed tracking-wide">
+                            {msg.isUser ? (
+                              <span>{msg.text}</span>
+                            ) : (
+                              <TypewriterText text={msg.text} />
+                            )}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute -right-10 top-0 opacity-0 transition-opacity group-hover:opacity-100 text-cyan-400 hover:text-cyan-300 hover:bg-transparent"
+                          onClick={() => copyMessage(msg.text, i)}
+                        >
+                          {copiedIndex === i ? (
+                            <CheckCheck className="h-4 w-4" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {isTyping && activeTabId === tab.id && (
+                    <div className="flex items-center gap-2 text-cyan-400 animate-fadeIn">
+                      <span className="text-lg font-bold text-green-500">$</span>
+                      <div className="flex space-x-1 mt-1">
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "0ms" }} />
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "150ms" }} />
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-500" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <div className="border-t border-cyan-500/30 bg-black/70 p-4">
+                  <div className="flex gap-3 items-center font-mono">
+                    <span className="text-cyan-400 text-lg font-bold select-none">{'>'}</span>
+                    <Textarea
+                      className="flex-1 bg-black/60 border border-cyan-500/30 focus:border-cyan-500/70 text-cyan-50 placeholder:text-cyan-500/50 focus:outline-none focus:ring-0 resize-none rounded-md px-3 py-2 min-h-[2.5rem] font-sans"
+                      placeholder="Digite seu comando..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      disabled={isTyping}
+                      rows={1}
+                      style={{ minHeight: '40px', maxHeight: '120px' }}
+                    />
+                    <Button
+                      onClick={handleSend}
+                      className="shrink-0 bg-gradient-to-r from-cyan-600 to-cyan-500 text-black font-bold hover:opacity-90 border border-cyan-400/50"
+                      disabled={isTyping || !newMessage.trim()}
+                    >
+                      EXECUTAR
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </div>
       </div>
     </AppLayout>

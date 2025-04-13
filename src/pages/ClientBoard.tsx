@@ -142,7 +142,7 @@ const ClientBoard = () => {
 
         <div className="terminal-box p-4">
           <div className="terminal-header">
-            sistema > clientes > busca
+            sistema {'>'}{'>'} clientes {'>'}{'>'} busca
           </div>
           <div className="relative mt-4">
             <Search className="absolute top-3 left-3 h-4 w-4 text-green-500/50" />
@@ -157,7 +157,7 @@ const ClientBoard = () => {
 
         <div className="terminal-box overflow-hidden">
           <div className="terminal-header">
-            sistema > clientes > listagem
+            sistema {'>'}{'>'} clientes {'>'}{'>'} listagem
           </div>
           <div className="overflow-x-auto">
             <Table>

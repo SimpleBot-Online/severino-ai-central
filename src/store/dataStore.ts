@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
@@ -345,10 +346,12 @@ const useChipInstancesStore = create<ChipInstancesState>()(
 );
 
 // Settings Store
-const useSettingsStore = create<{
+interface SettingsState {
   settings: Settings;
   updateSettings: (updates: Partial<Settings>) => void;
-}>()(
+}
+
+const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       settings: {
@@ -361,7 +364,8 @@ const useSettingsStore = create<{
         enableNotifications: false,
         autoSave: true,
         useSupabase: false,
-        userId: 'admin'
+        userId: 'admin',
+        assistantId: ''
       },
       updateSettings: (updates) => {
         set((state) => ({

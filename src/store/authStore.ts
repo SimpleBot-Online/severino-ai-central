@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AUTH, DATABASE } from '@/config';
@@ -11,6 +12,12 @@ interface AuthState {
   login: (password: string) => Promise<AuthError>;
   logout: () => void;
   checkAuth: () => void;
+}
+
+// Define explicitly what gets persisted to avoid infinite type instantiation
+interface PersistedAuthState {
+  isAuthenticated: boolean;
+  userId: string;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -75,7 +82,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: DATABASE.STORAGE_KEYS.AUTH,
-      partialize: (state) => ({
+      partialize: (state): PersistedAuthState => ({
         isAuthenticated: state.isAuthenticated,
         userId: state.userId,
       }),

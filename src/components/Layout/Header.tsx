@@ -33,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
 
         <div className="flex items-center gap-2 flex-1">
           <Terminal className="h-5 w-5 text-green-500 hidden sm:block" />
-          <h1 className="text-xl font-mono text-green-500 hidden md:block">SEVERINO.AI</h1>
+          <h1 className="text-xl font-mono text-green-500 hidden md:block">Campo de Batalha</h1>
         </div>
 
         <div className="flex items-center gap-2">

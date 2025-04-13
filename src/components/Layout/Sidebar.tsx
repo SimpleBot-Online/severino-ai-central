@@ -17,20 +17,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
   const location = useLocation();
 
   const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <Home size={20} /> },
-    { name: 'Anotações', path: '/notes', icon: <FileText size={20} /> },
-    { name: 'Tarefas', path: '/tasks', icon: <CheckSquare size={20} /> },
-    { name: 'Links Úteis', path: '/links', icon: <LinkIcon size={20} /> },
-    { name: 'Ideias', path: '/ideas', icon: <Lightbulb size={20} /> },
-    { name: 'Chat CEO', path: '/chat', icon: <MessageSquare size={20} /> },
-    { name: 'Prompt Maker', path: '/prompts', icon: <Terminal size={20} /> },
-    { name: 'Prompts Salvos', path: '/saved-prompts', icon: <Book size={20} /> },
-    { name: 'Assistentes', path: '/assistants', icon: <Bot size={20} /> },
-    { name: 'Aquecimento de Chips', path: '/farm', icon: <Cpu size={20} /> },
-    { name: 'O Melhor Robô', path: '/melhor-robo', icon: <Globe size={20} /> },
-    { name: 'SimpleBot', path: '/simplebot', icon: <Bot size={20} /> },
-    { name: 'Quadro de Clientes', path: '/clients', icon: <Users size={20} /> },
-    { name: 'Configurações', path: '/settings', icon: <Settings size={20} /> },
+    { name: 'Central', path: '/dashboard', icon: <Home size={20} /> },
+    { name: 'Caderninho', path: '/notes', icon: <FileText size={20} /> },
+    { name: 'Pendências', path: '/tasks', icon: <CheckSquare size={20} /> },
+    { name: 'Atalhos', path: '/links', icon: <LinkIcon size={20} /> },
+    { name: 'Genius', path: '/ideas', icon: <Lightbulb size={20} /> },
+    { name: 'SAC do Chefe', path: '/chat', icon: <MessageSquare size={20} /> },
+    { name: 'PromptMaker', path: '/prompts', icon: <Terminal size={20} /> },
+    { name: 'Banco de Talentos', path: '/saved-prompts', icon: <Book size={20} /> },
+    { name: 'Afinador', path: '/assistants', icon: <Bot size={20} /> },
+    { name: 'FARM (dev)', path: '/farm', icon: <Cpu size={20} /> },
+    { name: 'OMR', path: '/melhor-robo', icon: <Globe size={20} /> },
+    { name: 'N8N', path: '/simplebot', icon: <Bot size={20} /> },
+    { name: 'BlackList', path: '/clients', icon: <Users size={20} /> },
+    { name: 'Ajustes', path: '/settings', icon: <Settings size={20} /> },
   ];
 
   return (
@@ -44,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) =>
           />
           {!collapsed && (
             <span className="text-lg font-mono font-semibold text-green-500">
-              Severino+OMR
+              MÓDULOS
             </span>
           )}
         </div>

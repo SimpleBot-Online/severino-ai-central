@@ -55,6 +55,39 @@ export const deleteNote = (id: string): void => {
   localStorage.setItem('severino-notes-storage', JSON.stringify({ state: { notes: filteredNotes } }));
 };
 
+// Add missing createNote and updateNote functions
+export const createNote = async (userId: string, note: { title: string; content: string }): Promise<Note> => {
+  const notes = getNotes();
+  const newNote: Note = {
+    ...note,
+    id: uuidv4(),
+    userId,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  
+  saveNote(newNote);
+  return newNote;
+};
+
+export const updateNote = async (noteId: string, updates: { title?: string; content?: string }): Promise<Note> => {
+  const notes = getNotes();
+  const noteIndex = notes.findIndex(note => note.id === noteId);
+  
+  if (noteIndex === -1) {
+    throw new Error(`Note with id ${noteId} not found`);
+  }
+  
+  const updatedNote = {
+    ...notes[noteIndex],
+    ...updates,
+    updatedAt: new Date()
+  };
+  
+  saveNote(updatedNote);
+  return updatedNote;
+};
+
 // Tasks functions
 export const saveTask = (task: Task): void => {
   const tasks = getTasks();
@@ -307,4 +340,18 @@ export const deleteFinancialRecord = (id: string): void => {
   const records = getFinancialRecords();
   const filteredRecords = records.filter(record => record.id !== id);
   localStorage.setItem('severino-financial-records-storage', JSON.stringify({ state: { records: filteredRecords } }));
+};
+
+// Add missing updateUserSettings function
+export const updateUserSettings = async (userId: string, settings: any): Promise<any> => {
+  try {
+    localStorage.setItem('severino-settings-storage', JSON.stringify({ 
+      state: { settings: { ...settings, userId } } 
+    }));
+    
+    return settings;
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    throw error;
+  }
 };

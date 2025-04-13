@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { getClients, createClientRecord, updateClient, deleteClient } from '@/services/supabaseService';
@@ -7,13 +8,13 @@ import { toast } from 'sonner';
 
 const ClientBoard: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
-  const { user } = useAuthStore();
+  const { userId } = useAuthStore();  // Change from user to userId to match the store property
 
   useEffect(() => {
     const fetchClients = async () => {
-      if (user) {
+      if (userId) {
         try {
-          const fetchedClients = await getClients(user.id);
+          const fetchedClients = await getClients(userId);
           setClients(fetchedClients);
         } catch (error) {
           console.error('Error fetching clients:', error);
@@ -23,12 +24,12 @@ const ClientBoard: React.FC = () => {
     };
 
     fetchClients();
-  }, [user]);
+  }, [userId]);
 
   const handleCreateClient = async () => {
-    if (user) {
+    if (userId) {
       try {
-        const newClient = await createClientRecord(user.id, {
+        const newClient = await createClientRecord(userId, {
           name: 'Novo Cliente',
           status: 'prospect' as ClientStatus,
           category: 'technology' as ClientCategory
@@ -57,6 +58,7 @@ const ClientBoard: React.FC = () => {
 
   const handleDeleteClient = async (clientId: string) => {
     try {
+      // Ensure this returns a Promise by using await
       await deleteClient(clientId);
       setClients(prev => prev.filter(c => c.id !== clientId));
       toast.success('Cliente excluído com sucesso');

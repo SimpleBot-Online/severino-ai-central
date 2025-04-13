@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,7 +35,6 @@ const Notes = () => {
   const { userId } = useAuthStore();
   const notesStore = useNotesStore();
 
-  // Calculate pagination
   const filteredNotes = searchTerm
     ? notes.filter(note =>
         note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,7 +47,6 @@ const Notes = () => {
   const currentNotes = filteredNotes.slice(indexOfFirstNote, indexOfLastNote);
   const totalPages = Math.ceil(filteredNotes.length / notesPerPage);
 
-  // Change page
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const fetchNotes = useCallback(async () => {
@@ -57,9 +54,9 @@ const Notes = () => {
 
     try {
       setLoading(true);
-      const data = await getNotes(userId);
+      const data = await getNotes();
       setNotes(data || []);
-      setCurrentPage(1); // Reset to first page when fetching new data
+      setCurrentPage(1);
     } catch (error: any) {
       console.error('Error:', error);
       toast({
@@ -76,16 +73,13 @@ const Notes = () => {
     fetchNotes();
   }, [userId, fetchNotes]);
 
-  // Use the notes from the store directly
   useEffect(() => {
-    // Update notes when the component mounts and whenever the store changes
     const storeNotes = notesStore.notes;
     if (storeNotes && storeNotes.length > 0) {
       setNotes(storeNotes);
     }
   }, [notesStore.notes]);
 
-  // Helper functions for opening dialogs
   const handleOpenEditDialog = (note: Note) => {
     setCurrentNote({
       id: note.id,
@@ -254,41 +248,40 @@ const Notes = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {currentNotes.map((note) => (
-              <Card key={note.id} className="hover:border-primary/50 transition-colors">
-                <CardContent className="p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-bold text-lg line-clamp-1">{note.title}</h3>
-                    <div className="flex space-x-1">
-                      <button
-                        onClick={() => handleOpenEditDialog(note)}
-                        className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleOpenDeleteDialog(note)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive rounded-full hover:bg-muted"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                <Card key={note.id} className="hover:border-primary/50 transition-colors">
+                  <CardContent className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-bold text-lg line-clamp-1">{note.title}</h3>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => handleOpenEditDialog(note)}
+                          className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleOpenDeleteDialog(note)}
+                          className="p-1.5 text-muted-foreground hover:text-destructive rounded-full hover:bg-muted"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="text-foreground/80 text-sm line-clamp-4 mb-3">
-                    {note.content}
-                  </div>
+                    <div className="text-foreground/80 text-sm line-clamp-4 mb-3">
+                      {note.content}
+                    </div>
 
-                  <div className="text-xs text-muted-foreground">
-                    Atualizado em {note.updatedAt instanceof Date
-                      ? note.updatedAt.toLocaleDateString()
-                      : new Date(note.updatedAt).toLocaleDateString()}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="text-xs text-muted-foreground">
+                      Atualizado em {note.updatedAt instanceof Date
+                        ? note.updatedAt.toLocaleDateString()
+                        : new Date(note.updatedAt).toLocaleDateString()}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center mt-6">
                 <div className="flex space-x-1">
@@ -341,7 +334,6 @@ const Notes = () => {
         )}
       </div>
 
-      {/* Add Note Dialog */}
       <NoteDialog
         isOpen={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
@@ -355,7 +347,6 @@ const Notes = () => {
         loadingText="Salvando..."
       />
 
-      {/* Edit Note Dialog */}
       {currentNote && (
         <NoteDialog
           isOpen={isEditDialogOpen}
@@ -371,7 +362,6 @@ const Notes = () => {
         />
       )}
 
-      {/* Delete Note Dialog */}
       <DeleteNoteDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

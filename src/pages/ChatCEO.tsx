@@ -1,16 +1,9 @@
-
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Copy, CheckCheck, Terminal, ChevronDown, Plus, X, Edit, Save, Check } from "lucide-react";
+import { Copy, CheckCheck, Terminal, Plus, X, Edit, Save, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import AppLayout from "@/components/Layout/AppLayout";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { create } from 'zustand';
@@ -53,10 +46,18 @@ const useChatStore = create<ChatStore>()(
           activeTabId: newId,
         };
       }),
-      removeTab: (id) => set((state) => ({
-        tabs: state.tabs.filter((tab) => tab.id !== id),
-        activeTabId: state.activeTabId === id ? (state.tabs[0]?.id || "1") : state.activeTabId,
-      })),
+      removeTab: (id) => set((state) => {
+        // Don't remove the last tab
+        if (state.tabs.length <= 1) return state;
+        
+        // If removing active tab, switch to the first tab
+        return {
+          tabs: state.tabs.filter((tab) => tab.id !== id),
+          activeTabId: state.activeTabId === id ? 
+            (state.tabs.find(t => t.id !== id)?.id || state.tabs[0].id) : 
+            state.activeTabId,
+        };
+      }),
       addMessage: (tabId, message) => set((state) => ({
         tabs: state.tabs.map((tab) =>
           tab.id === tabId
@@ -85,7 +86,7 @@ const useChatStore = create<ChatStore>()(
   )
 );
 
-function TypewriterText({ text }: { text: string }) {
+function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
   const [displayText, setDisplayText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -94,10 +95,12 @@ function TypewriterText({ text }: { text: string }) {
       const timeout = setTimeout(() => {
         setDisplayText(prev => prev + text[currentIndex]);
         setCurrentIndex(prev => prev + 1);
-      }, 25); // Ajuste a velocidade aqui
+      }, 20); // Slightly faster typing speed
       return () => clearTimeout(timeout);
+    } else if (onComplete) {
+      onComplete();
     }
-  }, [currentIndex, text]);
+  }, [currentIndex, text, onComplete]);
 
   return <span>{displayText}</span>;
 }
@@ -118,39 +121,76 @@ export default function Chatbot() {
   const [isTyping, setIsTyping] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const messageSound = useRef(new Audio("/message.mp3"));
+  const messageSound = useRef(typeof Audio !== 'undefined' ? new Audio("/message.mp3") : null);
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editedTabName, setEditedTabName] = useState("");
+  const [autoScroll, setAutoScroll] = useState(true);
 
-  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  const activeTab = tabs.find((tab) => tab.id === activeTabId) || tabs[0];
   const messages = useMemo(() => activeTab?.messages || [], [activeTab?.messages]);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Fixed scroll to bottom function with better behavior
+  const scrollToBottom = useCallback((force = false) => {
+    if (!autoScroll && !force) return;
+    
+    // Use requestAnimationFrame to ensure DOM is updated
+    requestAnimationFrame(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  }, [autoScroll]);
+
+  // Monitor scroll position to determine if auto-scroll should be enabled/disabled
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      // If user has scrolled up more than 200px, disable auto-scroll
+      // If user has scrolled to bottom, enable auto-scroll
+      const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 50;
+      setAutoScroll(isScrolledToBottom);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Scroll when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  // Scroll when tab changes
+  useEffect(() => {
+    scrollToBottom(true);
+  }, [activeTabId, scrollToBottom]);
 
   const initializingRef = useRef<{ [key: string]: boolean }>({});
 
   const appendMessage = useCallback((content: string, isUser: boolean) => {
     const newMessage = { text: content, isUser, id: Date.now() };
     addMessage(activeTabId, newMessage);
-    if (!isUser) {
+    
+    if (!isUser && messageSound.current) {
       messageSound.current.play().catch(() => {
-        // Ignorar erros de reprodução de áudio
+        // Ignore audio playback errors
       });
     }
-  }, [activeTabId, addMessage]);
+
+    // Force scroll to bottom when appending messages
+    setTimeout(() => scrollToBottom(true), 100);
+  }, [activeTabId, addMessage, scrollToBottom]);
 
   const iniciarIntro = useCallback(async () => {
     if (initializingRef.current[activeTabId]) return;
     initializingRef.current[activeTabId] = true;
 
-    const delays = [500, 2000, 3000];
+    const delays = [500, 1500, 2000];
     const msgs = [
       "Estabelecendo conexão segura...",
       "Acesso concedido. Entrando na rede subterrânea...",
@@ -199,7 +239,7 @@ export default function Chatbot() {
   const sendMessage = useCallback(async (message: string) => {
     const now = Date.now();
     if (sendingRef.current || !message.trim() || now - lastTimestampRef.current < 1000) {
-      // Se já estiver enviando ou se passou menos de 1 segundo desde a última mensagem, coloque na fila
+      // Add to queue if already sending or if less than 1 second since last message
       messageQueueRef.current.push(message);
       return;
     }
@@ -209,11 +249,11 @@ export default function Chatbot() {
       lastTimestampRef.current = now;
       setIsTyping(true);
 
-      // Verificar se temos uma resposta em cache para esta mensagem
+      // Check if we have a cached response for this message
       const cachedResponse = sessionStorage.getItem(`chat_response_${message.trim()}`);
       if (cachedResponse) {
-        console.log('Usando resposta em cache');
-        await new Promise(resolve => setTimeout(resolve, 800)); // Pequeno atraso para parecer natural
+        console.log('Using cached response');
+        await new Promise(resolve => setTimeout(resolve, 800)); // Small delay to seem natural
         setIsTyping(false);
         appendMessage(cachedResponse, false);
         return;
@@ -221,7 +261,7 @@ export default function Chatbot() {
 
       const payload = JSON.stringify({ mensagem: message });
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
 
       try {
         const response = await fetch(
@@ -251,12 +291,12 @@ export default function Chatbot() {
         try {
           responseData = JSON.parse(text) as ApiResponse;
         } catch (e) {
-          console.warn('Falha ao analisar resposta como JSON:', e);
+          console.warn('Failed to parse response as JSON:', e);
         }
 
         if (!response.ok) {
           throw new Error(
-            `Erro ${response.status}: ${
+            `Error ${response.status}: ${
               typeof responseData === "string"
                 ? responseData
                 : JSON.stringify(responseData)
@@ -272,12 +312,12 @@ export default function Chatbot() {
             responseData.resposta ||
             responseData.response;
 
-        // Armazenar a resposta em cache para uso futuro
+        // Store response in cache for future use
         if (botResponse) {
           sessionStorage.setItem(`chat_response_${message.trim()}`, botResponse);
         }
 
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 400));
         setIsTyping(false);
 
         if (botResponse) {
@@ -307,7 +347,7 @@ export default function Chatbot() {
     } finally {
       sendingRef.current = false;
 
-      // Processar a próxima mensagem na fila, se houver
+      // Process next message in the queue if there is one
       if (messageQueueRef.current.length > 0) {
         const nextMessage = messageQueueRef.current.shift();
         if (nextMessage) {
@@ -350,10 +390,31 @@ export default function Chatbot() {
     }
   };
 
+  // Handle scroll to bottom button
+  const handleScrollToBottom = () => {
+    scrollToBottom(true);
+    setAutoScroll(true);
+  };
+
+  // Auto-adjust textarea height
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const adjustTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+  }, []);
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [newMessage, adjustTextareaHeight]);
+
   return (
     <AppLayout>
       <div className="relative flex flex-col flex-1 h-[calc(100vh-5rem)] p-4 overflow-hidden bg-cyber-dark">
-        {/* Fundo cyberpunk animado */}
+        {/* Animated cyberpunk background */}
         <div className="fixed inset-0 z-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-cyber-dark/80 via-cyber-dark to-cyber-dark/80" />
           <div className="bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gNDAgMCBMIDAgMCAwIDQwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMGZmYzgxMCIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPjwvc3ZnPg==')]" className="absolute inset-0 opacity-20" />
@@ -367,7 +428,7 @@ export default function Chatbot() {
               <div className="flex items-center gap-2">
                 <Terminal className="h-5 w-5 text-cyan-400" />
                 <h2 className="text-lg font-mono font-bold text-cyan-400 tracking-wide">
-                  SEVERINO CEO TERMINAL v3.0
+                  SEVERINO CEO TERMINAL v3.1
                 </h2>
               </div>
               <div>
@@ -469,9 +530,12 @@ export default function Chatbot() {
               <TabsContent 
                 key={tab.id} 
                 value={tab.id}
-                className="flex-grow flex flex-col p-0 m-0 outline-none data-[state=active]:flex-grow"
+                className="flex-grow flex flex-col p-0 m-0 outline-none data-[state=active]:flex-grow relative"
               >
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-base scrollbar-thin scrollbar-track-black scrollbar-thumb-cyan-500/50">
+                <div 
+                  ref={messagesContainerRef}
+                  className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-base scrollbar-thin scrollbar-track-black scrollbar-thumb-cyan-500/50"
+                >
                   {tab.messages.map((msg, i) => (
                     <div
                       key={msg.id}
@@ -491,11 +555,14 @@ export default function Chatbot() {
                           )}>
                             {msg.isUser ? '>' : '$'}
                           </span>
-                          <span className="leading-relaxed tracking-wide">
+                          <span className="leading-relaxed tracking-wide whitespace-pre-wrap">
                             {msg.isUser ? (
                               <span>{msg.text}</span>
                             ) : (
-                              <TypewriterText text={msg.text} />
+                              <TypewriterText 
+                                text={msg.text} 
+                                onComplete={scrollToBottom}
+                              />
                             )}
                           </span>
                         </div>
@@ -525,17 +592,32 @@ export default function Chatbot() {
                       </div>
                     </div>
                   )}
-                  <div ref={messagesEndRef} />
+                  <div ref={messagesEndRef} className="h-1" />
                 </div>
+
+                {/* Scroll to bottom button - appears when not auto-scrolling */}
+                {!autoScroll && (
+                  <Button
+                    onClick={handleScrollToBottom}
+                    className="absolute bottom-20 right-6 bg-cyan-700/70 hover:bg-cyan-600 text-white rounded-full shadow-md"
+                    size="sm"
+                  >
+                    ↓
+                  </Button>
+                )}
 
                 <div className="border-t border-cyan-500/30 bg-black/70 p-4">
                   <div className="flex gap-3 items-center font-mono">
                     <span className="text-cyan-400 text-lg font-bold select-none">{'>'}</span>
                     <Textarea
-                      className="flex-1 bg-black/60 border border-cyan-500/30 focus:border-cyan-500/70 text-cyan-50 placeholder:text-cyan-500/50 focus:outline-none focus:ring-0 resize-none rounded-md px-3 py-2 min-h-[2.5rem] font-sans"
+                      ref={textareaRef}
+                      className="flex-1 bg-black/60 border border-cyan-500/30 focus:border-cyan-500/70 text-cyan-50 placeholder:text-cyan-500/50 focus:outline-none focus:ring-0 resize-none rounded-md px-3 py-2 min-h-[2.5rem] font-sans overflow-hidden"
                       placeholder="Digite seu comando..."
                       value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
+                      onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        adjustTextareaHeight();
+                      }}
                       onKeyDown={handleKeyPress}
                       disabled={isTyping}
                       rows={1}

@@ -29,14 +29,19 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (password: string) => {
         try {
+          console.log('Tentando login com a senha:', password);
+          console.log('Senha mestra configurada:', AUTH.MASTER_PASSWORD);
+          
           // Verificar se a senha corresponde à senha mestra
           if (password === AUTH.MASTER_PASSWORD) {
+            console.log('Senha corresponde, autenticando usuário');
             set({
               isAuthenticated: true,
               loading: false,
             });
             return { error: null };
           } else {
+            console.log('Senha incorreta');
             return { error: new Error('Senha incorreta') };
           }
         } catch (error) {
@@ -59,9 +64,11 @@ export const useAuthStore = create<AuthState>()(
         if (storedState) {
           try {
             const parsedState = JSON.parse(storedState);
+            console.log('Estado armazenado:', parsedState);
 
             // Se o estado armazenado indica que o usuário está autenticado, mantém a autenticação
             if (parsedState.state && parsedState.state.isAuthenticated) {
+              console.log('Usuário já autenticado, mantendo autenticação');
               set({
                 isAuthenticated: true,
                 loading: false,
@@ -74,6 +81,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         // Se não houver estado armazenado ou o usuário não estiver autenticado
+        console.log('Usuário não autenticado');
         set({
           isAuthenticated: false,
           loading: false,

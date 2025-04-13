@@ -58,7 +58,7 @@ const ClientBoard: React.FC = () => {
 
   const handleDeleteClient = async (clientId: string) => {
     try {
-      // Ensure this returns a Promise by using await
+      // Corrija o erro TS2339 usando async/await em vez de catch
       await deleteClient(clientId);
       setClients(prev => prev.filter(c => c.id !== clientId));
       toast.success('Cliente excluído com sucesso');

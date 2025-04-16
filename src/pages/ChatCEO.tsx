@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Copy, CheckCheck, Terminal, Plus, X, Edit, Save, Check, ChevronDown, Menu, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -256,36 +257,7 @@ export default function Chatbot() {
     // Force scroll to bottom when appending messages
     setTimeout(() => scrollToBottom(true), 100);
   }, [activeTabId, addMessage, scrollToBottom]);
-const scrollToBottom = useCallback(() => {
-  if (messagesEndRef.current) {
-    messagesEndRef.current.scrollIntoView({ 
-      behavior: "smooth",
-      block: "end",
-    });
-  }
-}, []);
 
-// Update the useEffect to include isTyping in the dependency array
-useEffect(() => {
-  const timeoutId = setTimeout(() => {
-    scrollToBottom();
-  }, 100); // Small delay to ensure content is rendered
-  
-  return () => clearTimeout(timeoutId);
-}, [messages, scrollToBottom, isTyping]);
-
-// Also add scroll after appendMessage
-const appendMessage = useCallback((content: string, isUser: boolean) => {
-  const newMessage = { text: content, isUser, id: Date.now() };
-  addMessage(activeTabId, newMessage);
-  if (!isUser) {
-    messageSound.current.play().catch(() => {
-      // Ignore audio play errors
-    });
-  }
-  setTimeout(scrollToBottom, 100); // Add this line
-}, [activeTabId, addMessage, scrollToBottom]);
-  
   const iniciarIntro = useCallback(async () => {
     if (initializingRef.current[activeTabId]) return;
     initializingRef.current[activeTabId] = true;
@@ -456,7 +428,7 @@ const appendMessage = useCallback((content: string, isUser: boolean) => {
         }
       }
     }
-  }, [appendMessage, toast]);
+  }, [appendMessage, toast, setIsTyping, setAutoScroll]);
 
   const handleSend = useCallback(async () => {
     const trimmed = newMessage.trim();

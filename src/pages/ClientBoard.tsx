@@ -21,7 +21,7 @@ const ClientBoard = () => {
     email: '',
     phone: '',
     company: '',
-    status: 'active' as ClientStatus,
+    status: 'lead' as ClientStatus,
   });
   const { toast } = useToast();
 
@@ -34,7 +34,11 @@ const ClientBoard = () => {
         email: 'joao.silva@example.com',
         phone: '(11) 98765-4321',
         company: 'Tech Solutions',
-        status: 'active' as ClientStatus,
+        status: 'lead',
+        category: 'company',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: 'admin'
       },
       {
         id: '2',
@@ -42,7 +46,11 @@ const ClientBoard = () => {
         email: 'maria.oliveira@example.com',
         phone: '(21) 98765-4321',
         company: 'Digital Marketing',
-        status: 'inactive' as ClientStatus,
+        status: 'inactive',
+        category: 'company',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: 'admin'
       },
       {
         id: '3',
@@ -50,7 +58,11 @@ const ClientBoard = () => {
         email: 'carlos.santos@example.com',
         phone: '(31) 98765-4321',
         company: 'Web Design Co.',
-        status: 'lead' as ClientStatus,
+        status: 'lead',
+        category: 'partner',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: 'admin'
       },
     ];
     setClients(mockClients);
@@ -83,7 +95,11 @@ const ClientBoard = () => {
     const clientWithId = {
       ...newClient,
       id: Date.now().toString(),
-      status: newClient.status as ClientStatus || 'lead' as ClientStatus,
+      status: newClient.status || 'lead',
+      category: 'company', // Default category
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userId: 'admin'
     } as Client;
 
     setClients([...clients, clientWithId]);
@@ -92,7 +108,7 @@ const ClientBoard = () => {
       email: '',
       phone: '',
       company: '',
-      status: 'lead' as ClientStatus,
+      status: 'lead',
     });
     setIsAddDialogOpen(false);
     toast({
@@ -185,7 +201,7 @@ const ClientBoard = () => {
                           client.status === 'inactive' ? 'bg-red-500/10 text-red-500 border border-red-500/30' : 
                           'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'}`}>
                           {client.status === 'active' ? 'ATIVO' : 
-                          client.status === 'inactive' ? 'INATIVO' : 'LEAD'}
+                           client.status === 'inactive' ? 'INATIVO' : 'LEAD'}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">

@@ -1,12 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
-import { Client, ClientStatus } from '@/types';
+import { Client, ClientStatus, ClientCategory } from '@/types';
 import { Plus, Search, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { getClients, createClientRecord, updateClient, deleteClient } from '@/services/supabaseService';
+import { useAuthStore } from '@/store/authStore';
 
 const ClientBoard = () => {
   const [clients, setClients] = useState<Client[]>([]);
@@ -21,58 +24,40 @@ const ClientBoard = () => {
     phone: '',
     company: '',
     status: 'lead' as ClientStatus,
+    category: 'company' as ClientCategory,
   });
   const { toast } = useToast();
+  const { userId } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const mockClients: Client[] = [
-      {
-        id: '1',
-        name: 'João Silva',
-        email: 'joao.silva@example.com',
-        phone: '(11) 98765-4321',
-        company: 'Tech Solutions',
-        status: 'lead',
-        category: 'company',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userId: 'admin'
-      },
-      {
-        id: '2',
-        name: 'Maria Oliveira',
-        email: 'maria.oliveira@example.com',
-        phone: '(21) 98765-4321',
-        company: 'Digital Marketing',
-        status: 'inactive',
-        category: 'company',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userId: 'admin'
-      },
-      {
-        id: '3',
-        name: 'Carlos Santos',
-        email: 'carlos.santos@example.com',
-        phone: '(31) 98765-4321',
-        company: 'Web Design Co.',
-        status: 'lead',
-        category: 'partner',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userId: 'admin'
-      },
-    ];
-    setClients(mockClients);
-    setFilteredClients(mockClients);
-  }, []);
+    const fetchClients = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getClients(userId || 'admin');
+        setClients(data);
+        setFilteredClients(data);
+      } catch (error) {
+        console.error('Erro ao buscar clientes:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os clientes.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, [userId, toast]);
 
   useEffect(() => {
     if (searchTerm) {
       const filtered = clients.filter((client) =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.company.toLowerCase().includes(searchTerm.toLowerCase())
+        (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (client.company && client.company.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       setFilteredClients(filtered);
     } else {
@@ -80,63 +65,93 @@ const ClientBoard = () => {
     }
   }, [searchTerm, clients]);
 
-  const handleAddClient = () => {
-    if (!newClient.name || !newClient.email) {
+  const handleAddClient = async () => {
+    if (!newClient.name) {
       toast({
         title: "Campos obrigatórios",
-        description: "Nome e e-mail são obrigatórios",
+        description: "Nome é obrigatório",
         variant: "destructive"
       });
       return;
     }
 
-    const clientWithId = {
-      ...newClient,
-      id: Date.now().toString(),
-      status: newClient.status || 'lead',
-      category: 'company', // Default category
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userId: 'admin'
-    } as Client;
+    try {
+      const clientData = {
+        name: newClient.name,
+        email: newClient.email || '',
+        phone: newClient.phone || '',
+        company: newClient.company || '',
+        status: newClient.status || 'lead',
+        category: newClient.category || 'company',
+      };
 
-    setClients([...clients, clientWithId]);
-    setNewClient({
-      name: '',
-      email: '',
-      phone: '',
-      company: '',
-      status: 'lead',
-    });
-    setIsAddDialogOpen(false);
-    toast({
-      title: "Cliente adicionado",
-      description: "Cliente foi adicionado com sucesso"
-    });
-  };
-
-  const handleEditClient = () => {
-    if (selectedClient) {
-      const updatedClients = clients.map((client) =>
-        client.id === selectedClient.id ? selectedClient : client
-      );
-      setClients(updatedClients);
-      setSelectedClient(null);
-      setIsEditDialogOpen(false);
+      const createdClient = await createClientRecord(userId || 'admin', clientData);
+      setClients([...clients, createdClient]);
+      setNewClient({
+        name: '',
+        email: '',
+        phone: '',
+        company: '',
+        status: 'lead',
+        category: 'company',
+      });
+      setIsAddDialogOpen(false);
       toast({
-        title: "Cliente atualizado",
-        description: "Dados do cliente atualizados com sucesso"
+        title: "Cliente adicionado",
+        description: "Cliente foi adicionado com sucesso"
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar cliente:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar o cliente.",
+        variant: "destructive"
       });
     }
   };
 
-  const handleDeleteClient = (id: string) => {
-    const updatedClients = clients.filter((client) => client.id !== id);
-    setClients(updatedClients);
-    toast({
-      title: "Cliente removido",
-      description: "Cliente foi removido com sucesso"
-    });
+  const handleEditClient = async () => {
+    if (selectedClient) {
+      try {
+        const updatedClient = await updateClient(selectedClient.id, selectedClient);
+        const updatedClients = clients.map((client) =>
+          client.id === updatedClient.id ? updatedClient : client
+        );
+        setClients(updatedClients);
+        setSelectedClient(null);
+        setIsEditDialogOpen(false);
+        toast({
+          title: "Cliente atualizado",
+          description: "Dados do cliente atualizados com sucesso"
+        });
+      } catch (error) {
+        console.error('Erro ao atualizar cliente:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível atualizar o cliente.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const handleDeleteClient = async (id: string) => {
+    try {
+      await deleteClient(id);
+      const updatedClients = clients.filter((client) => client.id !== id);
+      setClients(updatedClients);
+      toast({
+        title: "Cliente removido",
+        description: "Cliente foi removido com sucesso"
+      });
+    } catch (error) {
+      console.error('Erro ao remover cliente:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o cliente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const renderClientStatus = (status: ClientStatus) => {
@@ -198,7 +213,13 @@ const ClientBoard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClients.length > 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-green-500/60 font-mono">
+                      Carregando clientes...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredClients.length > 0 ? (
                   filteredClients.map((client) => (
                     <TableRow key={client.id} className="border-green-500/20">
                       <TableCell className="font-mono">{client.name}</TableCell>
@@ -296,6 +317,18 @@ const ClientBoard = () => {
                 <option value="inactive">INATIVO</option>
               </select>
             </div>
+            <div className="space-y-2">
+              <label className="text-sm text-green-500/80 terminal-prompt">categoria</label>
+              <select
+                value={newClient.category as string}
+                onChange={(e) => setNewClient({ ...newClient, category: e.target.value as ClientCategory })}
+                className="bg-black border border-green-500/30 px-3 py-2 text-green-400 w-full font-mono text-sm focus:outline-none focus:border-green-500/70"
+              >
+                <option value="company">EMPRESA</option>
+                <option value="individual">INDIVIDUAL</option>
+                <option value="partner">PARCEIRO</option>
+              </select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setIsAddDialogOpen(false)}>
@@ -354,6 +387,18 @@ const ClientBoard = () => {
                   <option value="lead">LEAD</option>
                   <option value="active">ATIVO</option>
                   <option value="inactive">INATIVO</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-green-500/80 terminal-prompt">categoria</label>
+                <select
+                  value={selectedClient.category}
+                  onChange={(e) => setSelectedClient({ ...selectedClient, category: e.target.value as ClientCategory })}
+                  className="bg-black border border-green-500/30 px-3 py-2 text-green-400 w-full font-mono text-sm focus:outline-none focus:border-green-500/70"
+                >
+                  <option value="company">EMPRESA</option>
+                  <option value="individual">INDIVIDUAL</option>
+                  <option value="partner">PARCEIRO</option>
                 </select>
               </div>
             </div>

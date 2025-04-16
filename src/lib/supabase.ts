@@ -1,10 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { DATABASE } from '@/config';
 
-// Initialize Supabase client
-const supabaseUrl = DATABASE.SUPABASE.URL;
-const supabaseKey = DATABASE.SUPABASE.KEY;
+import { supabase } from '@/integrations/supabase/client';
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+// Reexportando o cliente do Supabase para manter a compatibilidade com código existente
 export default supabase;

@@ -1,10 +1,11 @@
-import { showSuccess, showError } from './notificationService';
-import { DATABASE } from '@/config';
 
-// Initialize Supabase client
-const supabaseUrl = DATABASE.SUPABASE.URL;
-const supabaseKey = DATABASE.SUPABASE.KEY;
-const supabase = supabaseCreateClient(supabaseUrl, supabaseKey);
+import { supabase } from '@/integrations/supabase/client';
+import { showSuccess, showError } from './notificationService';
+import { 
+  Note, Task, UsefulLink, Idea, 
+  Client, ClientStatus, ClientCategory, 
+  FinancialRecord, Settings
+} from '@/types';
 
 // User Authentication
 export const signIn = async (email: string, password: string) => {
@@ -34,8 +35,8 @@ export const getNotes = async (userId: string) => {
   const { data, error } = await supabase
     .from('notes')
     .select('*')
-    .eq('userId', userId)
-    .order('createdAt', { ascending: false });
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
 
   if (error) throw error;
   return data as Note[];
@@ -58,9 +59,9 @@ export const createNote = async (userId: string, note: { title: string; content:
       .from('notes')
       .insert([{
         ...note,
-        userId,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        user_id: userId,
+        created_at: new Date(),
+        updated_at: new Date()
       }])
       .select();
 
@@ -80,7 +81,7 @@ export const updateNote = async (noteId: string, updates: { title?: string; cont
       .from('notes')
       .update({
         ...updates,
-        updatedAt: new Date()
+        updated_at: new Date()
       })
       .eq('id', noteId)
       .select();
@@ -117,8 +118,8 @@ export const getTasks = async (userId: string) => {
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
-    .eq('userId', userId)
-    .order('createdAt', { ascending: false });
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
 
   if (error) throw error;
   return data as Task[];
@@ -140,8 +141,8 @@ export const createTask = async (userId: string, task: { title: string; descript
     .from('tasks')
     .insert([{
       ...task,
-      userId,
-      createdAt: new Date()
+      user_id: userId,
+      created_at: new Date()
     }])
     .select();
 
@@ -175,7 +176,7 @@ export const getUserSettings = async (userId: string) => {
   const { data, error } = await supabase
     .from('settings')
     .select('*')
-    .eq('userId', userId)
+    .eq('user_id', userId)
     .single();
 
   if (error) {
@@ -195,7 +196,7 @@ export const updateUserSettings = async (userId: string, settings: Partial<Setti
     const { data: existingSettings } = await supabase
       .from('settings')
       .select('*')
-      .eq('userId', userId)
+      .eq('user_id', userId)
       .single();
 
     if (!existingSettings) {
@@ -204,7 +205,7 @@ export const updateUserSettings = async (userId: string, settings: Partial<Setti
         .from('settings')
         .insert([{
           ...settings,
-          userId
+          user_id: userId
         }])
         .select();
 
@@ -216,7 +217,7 @@ export const updateUserSettings = async (userId: string, settings: Partial<Setti
       const { data, error } = await supabase
         .from('settings')
         .update(settings)
-        .eq('userId', userId)
+        .eq('user_id', userId)
         .select();
 
       if (error) throw error;
@@ -246,7 +247,7 @@ const createDefaultSettings = async (userId: string) => {
 
   const { data, error } = await supabase
     .from('settings')
-    .insert([defaultSettings])
+    .insert([{ ...defaultSettings, user_id: userId }])
     .select();
 
   if (error) throw error;
@@ -258,8 +259,8 @@ export const getClients = async (userId: string) => {
   const { data, error } = await supabase
     .from('clients')
     .select('*')
-    .eq('userId', userId)
-    .order('createdAt', { ascending: false });
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
 
   if (error) throw error;
   return data as Client[];
@@ -269,22 +270,22 @@ export const getClientsByStatus = async (userId: string, status: ClientStatus) =
   const { data, error } = await supabase
     .from('clients')
     .select('*')
-    .eq('userId', userId)
+    .eq('user_id', userId)
     .eq('status', status)
-    .order('createdAt', { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (error) throw error;
   return data as Client[];
 };
 
-export const createClientRecord = async (userId: string, client: { name: string; status: ClientStatus; category: ClientCategory; [key: string]: string | number | boolean | null }) => {
+export const createClientRecord = async (userId: string, client: { name: string; status: ClientStatus; category: ClientCategory; [key: string]: any }) => {
   const { data, error } = await supabase
     .from('clients')
     .insert([{
       ...client,
-      userId,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      user_id: userId,
+      created_at: new Date(),
+      updated_at: new Date()
     }])
     .select();
 
@@ -297,7 +298,7 @@ export const updateClient = async (clientId: string, updates: Partial<Client>) =
     .from('clients')
     .update({
       ...updates,
-      updatedAt: new Date()
+      updated_at: new Date()
     })
     .eq('id', clientId)
     .select();
@@ -319,20 +320,13 @@ export const deleteClient = async (clientId: string) => {
 // Initialize database tables
 export const initializeDatabase = async () => {
   try {
-    // Check if tables exist and create them if they don't
-    await createTablesIfNotExist();
+    // As tabelas já estão criadas via SQL
+    console.log('Database already initialized through Supabase SQL');
     return { success: true };
   } catch (error) {
     console.error('Error initializing database:', error);
     throw error;
   }
-};
-
-const createTablesIfNotExist = async () => {
-  // This would typically be done through Supabase migrations or dashboard
-  // For this implementation, we'll assume tables are created in the Supabase dashboard
-  console.log('Tables should be created in the Supabase dashboard');
-  return { success: true };
 };
 
 // Function to migrate data from localStorage to Supabase
@@ -352,7 +346,7 @@ export const migrateDataToSupabase = async (userId: string) => {
       for (const note of notes) {
         await supabase.from('notes').insert([{
           ...note,
-          userId
+          user_id: userId
         }]);
       }
     }
@@ -363,7 +357,7 @@ export const migrateDataToSupabase = async (userId: string) => {
       for (const task of tasks) {
         await supabase.from('tasks').insert([{
           ...task,
-          userId
+          user_id: userId
         }]);
       }
     }
@@ -374,7 +368,7 @@ export const migrateDataToSupabase = async (userId: string) => {
       for (const link of links) {
         await supabase.from('links').insert([{
           ...link,
-          userId
+          user_id: userId
         }]);
       }
     }
@@ -385,7 +379,7 @@ export const migrateDataToSupabase = async (userId: string) => {
       for (const idea of ideas) {
         await supabase.from('ideas').insert([{
           ...idea,
-          userId
+          user_id: userId
         }]);
       }
     }
@@ -395,7 +389,7 @@ export const migrateDataToSupabase = async (userId: string) => {
       const settings = JSON.parse(settingsData).state.settings;
       await supabase.from('settings').insert([{
         ...settings,
-        userId
+        user_id: userId
       }]);
     }
 
@@ -405,7 +399,7 @@ export const migrateDataToSupabase = async (userId: string) => {
       for (const client of clients) {
         await supabase.from('clients').insert([{
           ...client,
-          userId
+          user_id: userId
         }]);
       }
     }
@@ -418,5 +412,3 @@ export const migrateDataToSupabase = async (userId: string) => {
     throw error;
   }
 };
-
-export default supabase;

@@ -1,8 +1,3 @@
-import { createClient as supabaseCreateClient } from '@supabase/supabase-js';
-import {
-  Note, Task, UsefulLink, Idea, Prompt, ChipInstance,
-  Settings, Client, FinancialRecord, ClientStatus, ClientCategory
-} from '../types';
 import { showSuccess, showError } from './notificationService';
 import { DATABASE } from '@/config';
 

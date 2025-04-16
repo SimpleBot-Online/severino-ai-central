@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Copy, CheckCheck, Terminal, Plus, X, Edit, Save, Check, ChevronDown, Menu, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -524,7 +523,7 @@ export default function Chatbot() {
         {/* Animated cyberpunk background */}
         <div className="fixed inset-0 z-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-cyber-dark/80 via-cyber-dark to-cyber-dark/80" />
-          <div className="bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gNDAgMCBMIDAgMCAwIDQwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMGZmYzgxMCIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPjwvc3ZnPg==')]" className="absolute inset-0 opacity-20" />
+          <div className="bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gNDAgMCBMIDAgMCAwIDQwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMGZmYzgxMCIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIgLz48L3N2Zz4=')]" className="absolute inset-0 opacity-20" />
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 blur-3xl rounded-full transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 blur-3xl rounded-full transform translate-x-1/2 translate-y-1/2 animate-pulse" />
         </div>
@@ -796,76 +795,4 @@ export default function Chatbot() {
                           </button>
                         </div>
                         {message.isUser && (
-                          <div className="w-8 h-8 rounded-md flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center text-white font-bold">
-                            U
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {isTyping && (
-                      <div className="flex items-start gap-2 animate-fadeIn justify-start">
-                        <div className="w-8 h-8 rounded-md flex-shrink-0 overflow-hidden bg-gradient-to-br from-cyan-600 to-cyan-900 flex items-center justify-center text-white font-bold">
-                          S
-                        </div>
-                        <div className="relative group rounded-lg max-w-[85%] p-3 bg-gradient-to-r from-cyan-950/50 to-cyan-900/40 text-cyan-100 border border-cyan-500/50">
-                          <div className="flex space-x-2">
-                            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-                            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-75"></div>
-                            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-150"></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-                </div>
-
-                {/* Show scroll to bottom button when not auto-scrolling */}
-                {!autoScroll && messages.length > 4 && (
-                  <button
-                    className="absolute bottom-20 right-4 bg-black/80 border border-cyan-500/50 rounded-full p-2 text-cyan-400 hover:bg-black hover:border-cyan-500 transition-all animate-bounce"
-                    onClick={handleScrollToBottom}
-                    aria-label="Rolar para o final da conversa"
-                  >
-                    <ChevronDown className="h-5 w-5" />
-                  </button>
-                )}
-
-                {/* Input area */}
-                <div className="flex-shrink-0 p-3 border-t border-cyan-500/30 bg-black/70">
-                  <div className="flex gap-2">
-                    <div className="relative flex-grow">
-                      <Textarea
-                        ref={textareaRef}
-                        value={newMessage}
-                        onChange={(e) => {
-                          setNewMessage(e.target.value);
-                          adjustTextareaHeight();
-                        }}
-                        onKeyDown={handleKeyPress}
-                        placeholder="Digite sua mensagem..."
-                        className="resize-none min-h-[40px] max-h-[120px] bg-black/80 border-cyan-500/50 text-cyan-100 focus:border-cyan-400 focus:ring-cyan-400/20 placeholder:text-cyan-400/50 scrollbar-thin scrollbar-thumb-cyan-800 scrollbar-track-transparent"
-                        disabled={isTyping}
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      onClick={handleSend}
-                      disabled={isTyping || !newMessage.trim()}
-                      className={cn(
-                        "h-auto self-end bg-gradient-to-r from-cyan-800 to-cyan-900 hover:from-cyan-700 hover:to-cyan-800 text-white border border-cyan-500/50",
-                        "disabled:from-cyan-950 disabled:to-cyan-950 disabled:text-cyan-400/50 disabled:border-cyan-500/20"
-                      )}
-                    >
-                      Enviar
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
-      </div>
-    </AppLayout>
-  );
-}
+                          <div className="w-8 h-8 rounded-md flex-shrink-0 overflow-hidden bg-gradient-to-

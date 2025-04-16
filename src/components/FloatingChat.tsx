@@ -20,7 +20,6 @@ const FloatingChat: React.FC = () => {
   const { settings } = useSettingsStore();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Scroll to bottom of messages
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
@@ -29,7 +28,6 @@ const FloatingChat: React.FC = () => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Focus input when chat is opened
   useEffect(() => {
     if (isOpen && !isMinimized) {
       setTimeout(() => {
@@ -38,7 +36,6 @@ const FloatingChat: React.FC = () => {
     }
   }, [isOpen, isMinimized]);
 
-  // Add welcome message when chat is first opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([
@@ -77,7 +74,6 @@ const FloatingChat: React.FC = () => {
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
 
-    // Check if OpenAI API key is configured
     if (!settings?.openaiApiKey) {
       showError(
         'API Key não configurada',
@@ -97,7 +93,6 @@ const FloatingChat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Use OpenAI API to get response
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -164,7 +159,6 @@ const FloatingChat: React.FC = () => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col w-80 sm:w-96 rounded-lg shadow-lg border border-green-500/50 bg-cyber-dark/90 backdrop-blur-sm overflow-hidden">
-      {/* Chat header */}
       <div className="flex items-center justify-between p-3 border-b border-green-500/30 bg-cyber-dark">
         <div className="flex items-center">
           <MessageSquare size={18} className="text-green-500 mr-2" />
@@ -190,7 +184,6 @@ const FloatingChat: React.FC = () => {
         </div>
       </div>
 
-      {/* Chat messages */}
       {!isMinimized && (
         <>
           <div className="flex-1 p-3 overflow-y-auto max-h-80 space-y-3">
@@ -223,7 +216,6 @@ const FloatingChat: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Chat input */}
           <div className="p-3 border-t border-green-500/30 bg-cyber-dark/80">
             <div className="flex items-center space-x-2">
               <input

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Menu, Bell, User, Settings, LogOut, Terminal, Shield } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -15,7 +14,7 @@ import { useNotifications } from '@/components/NotificationProvider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/hooks/use-toast';
-import notificationService from '@/services/notificationService';
+import { playNotificationSound } from '@/services/notificationService';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -28,19 +27,16 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Count unread notifications
   useEffect(() => {
     if (notifications) {
       setUnreadCount(notifications.length);
       
-      // Play notification sound for new notifications
       if (notifications.length > 0) {
-        notificationService.playNotificationSound();
+        playNotificationSound();
       }
     }
   }, [notifications]);
 
-  // Handle notification click
   const handleNotificationClick = (id: string) => {
     dismissNotification(id);
   };

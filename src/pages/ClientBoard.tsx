@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,6 @@ const ClientBoard = () => {
   });
   const { toast } = useToast();
 
-  // Mock data for demonstration
   useEffect(() => {
     const mockClients: Client[] = [
       {
@@ -141,6 +139,18 @@ const ClientBoard = () => {
     });
   };
 
+  const renderClientStatus = (status: ClientStatus) => {
+    return (
+      <span className={`inline-flex items-center px-2 py-1 text-xs font-mono 
+        ${status === 'active' ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 
+        status === 'inactive' ? 'bg-red-500/10 text-red-500 border border-red-500/30' : 
+        'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'}`}>
+        {status === 'active' ? 'ATIVO' : 
+         status === 'inactive' ? 'INATIVO' : 'LEAD'}
+      </span>
+    );
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fadeIn terminal-effect">
@@ -196,13 +206,7 @@ const ClientBoard = () => {
                       <TableCell className="font-mono">{client.phone}</TableCell>
                       <TableCell className="font-mono">{client.company}</TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center px-2 py-1 text-xs font-mono 
-                          ${client.status === 'active' ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 
-                          client.status === 'inactive' ? 'bg-red-500/10 text-red-500 border border-red-500/30' : 
-                          'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'}`}>
-                          {client.status === 'active' ? 'ATIVO' : 
-                           client.status === 'inactive' ? 'INATIVO' : 'LEAD'}
-                        </span>
+                        {renderClientStatus(client.status)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -242,7 +246,6 @@ const ClientBoard = () => {
         </div>
       </div>
 
-      {/* Add Client Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="bg-black border border-green-500/30 text-green-400 font-mono">
           <DialogHeader>
@@ -306,7 +309,6 @@ const ClientBoard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Client Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-black border border-green-500/30 text-green-400 font-mono">
           <DialogHeader>

@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Copy, CheckCheck, Terminal, Plus, X, Edit, Save, Check, ChevronDown, Menu, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -734,7 +735,7 @@ export default function Chatbot() {
             </div>
 
             {tabs.map((tab) => (
-            <TabsContent 
+              <TabsContent 
                 key={tab.id} 
                 value={tab.id}
                 className="flex-grow flex flex-col p-0 m-0 outline-none data-[state=active]:flex-grow relative"
@@ -795,4 +796,66 @@ export default function Chatbot() {
                           </button>
                         </div>
                         {message.isUser && (
-                          <div className="w-8 h-8 rounded-md flex-shrink-0 overflow-hidden bg-gradient-to-
+                          <div className="w-8 h-8 rounded-md flex-shrink-0 overflow-hidden bg-gradient-to-br from-cyan-600 to-cyan-900 flex items-center justify-center text-white font-bold">
+                            U
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </div>
+
+                {/* Input area */}
+                <div className="relative px-3 md:px-4 py-3 border-t border-cyan-500/30 bg-black/30 backdrop-blur-sm">
+                  {!autoScroll && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="absolute -top-10 right-4 bg-black/80 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-950/30"
+                      onClick={handleScrollToBottom}
+                    >
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Ver novas mensagens
+                    </Button>
+                  )}
+                  <div className="flex items-end gap-2">
+                    <Textarea
+                      ref={textareaRef}
+                      value={newMessage}
+                      onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        adjustTextareaHeight();
+                      }}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Digite sua mensagem..."
+                      className="min-h-10 max-h-36 bg-black/60 border-cyan-500/50 text-cyan-100 placeholder:text-cyan-500/50 resize-none focus-visible:ring-cyan-500/30"
+                      disabled={isTyping}
+                    />
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      className="h-10 px-4 border-cyan-500/50 bg-black/60 text-cyan-400 hover:bg-cyan-950/30 hover:text-cyan-300 flex-shrink-0"
+                      disabled={isTyping || !newMessage.trim()}
+                      onClick={handleSend}
+                    >
+                      {isTyping ? (
+                        <div className="flex space-x-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce delay-75"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce delay-150"></div>
+                        </div>
+                      ) : (
+                        "Enviar"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
+      </div>
+    </AppLayout>
+  );
+}

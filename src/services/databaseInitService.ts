@@ -1,7 +1,10 @@
+
 /**
  * Database initialization service
  * This service handles the initialization of the database structure
  */
+import memoryService from './memoryService';
+import { initNotificationSound } from './notificationService';
 
 // Function to check and create database structure
 export async function checkAndCreateDatabaseStructure() {
@@ -27,6 +30,14 @@ export async function checkAndCreateDatabaseStructure() {
         localStorage.setItem(storeName, JSON.stringify({ state: {} }));
       }
     });
+    
+    // Initialize memory service - just accessing it will start the initialization
+    console.log('Initializing memory service...');
+    const memoryItemCount = Object.keys(memoryService.debug()).length;
+    console.log(`Memory service initialized with ${memoryItemCount} items`);
+    
+    // Initialize notification sound
+    initNotificationSound();
 
     // Simulate a small delay to give time to load
     await new Promise(resolve => setTimeout(resolve, 300));

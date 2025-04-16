@@ -1,3 +1,4 @@
+
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -9,6 +10,8 @@ import { Loading } from "./components/Loading";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PrivateRouteWithChat from "./components/Layout/PrivateRouteWithChat";
 import NotificationProvider from "./components/NotificationProvider";
+import notificationService from './services/notificationService';
+import { checkAndCreateDatabaseStructure } from './services/databaseInitService';
 
 // Lazy-loaded page components
 const Index = lazy(() => import("./pages/Index"));
@@ -54,6 +57,19 @@ const App = () => {
   // Check for existing session on app load
   useEffect(() => {
     checkAuth();
+    
+    // Initialize database and memory
+    checkAndCreateDatabaseStructure().then(success => {
+      if (success) {
+        // Show welcome notification after successful initialization
+        setTimeout(() => {
+          notificationService.showSuccess(
+            "Sistema Inicializado", 
+            "Bem-vindo ao Severino IA Central. Todos os sistemas estão operacionais."
+          );
+        }, 1500);
+      }
+    });
   }, [checkAuth]);
 
   // Add a cyberpunk console message
